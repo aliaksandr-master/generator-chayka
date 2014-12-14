@@ -1,0 +1,4 @@
+{
+	"phpNamespace": "<%= phpNamespace %>",
+	"appType": "<%= appType %>"
+}

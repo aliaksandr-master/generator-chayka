@@ -1,0 +1,13 @@
+<?php
+
+namespace <%= phpNamespace %>;
+
+use Chayka\Helpers;
+
+class NlsHelper extends Helpers\NlsHelper {
+
+    public static function getBaseDir(){
+        return <%= phpAppClass %>::getInstance()->getBasePath();
+    }
+
+} 

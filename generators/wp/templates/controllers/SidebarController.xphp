@@ -1,0 +1,269 @@
+<?php
+
+require_once 'Zend/View.php';
+
+class wpt_JurcatalogBy_Widget extends WP_Widget {
+    
+    protected static $args;
+
+    public static function getArgs(){
+        return self::$args;
+    }
+    
+    public static function getTitle(){
+        return self::$args['title'];
+    }
+    
+    public static function getDefault($data, $key, $default = ''){
+        $value = $default;
+        if (is_object($data)) {
+            $data = get_object_vars($data);
+        }
+        if (is_array($data)) {
+            if (isset($data[$key])) {
+                $value = $data[$key];
+            }
+        }
+
+        return $value;
+    }
+    
+    function __construct($id = 'widget-jurcatalog', $name = 'Base Widget', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog',
+            'description' => "Base wideget"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+        $this->alt_option_name = $id;
+
+    }
+    
+    protected function getView($instance){
+        $view = new Zend_View();
+        $view->setScriptPath(WPT_JURCATALOGBY_PATH.'application/views/scripts');
+        $view->assign($instance);
+        $view->widget = $this;
+        return $view;
+    }
+
+    function widget($args, $instance) {
+        self::$args = $instance;
+        extract($args);
+        $beforeWidget = self::getDefault($args, 'before_widget');
+        $beforeTitle = self::getDefault($args, 'before_title');
+        $afterTitle = self::getDefault($args, 'after_title');
+        $afterWidget = self::getDefault($args, 'after_widget');
+        $title = apply_filters( 'widget_title', self::getDefault($instance, 'title') );
+        $view = $this->getView($instance);
+        $tpl = sprintf('sidebar/%s-view.phtml', $this->id_base);
+        $content = $view->render($tpl);
+
+        if($content){
+            echo $beforeWidget;
+            if ( ! empty( $title ) ){
+                echo $beforeTitle . $title . $afterTitle;
+            }
+            
+            echo $content;
+
+            echo $afterWidget;
+        }
+    }
+
+    function flush() {
+        wp_cache_delete($this->id_base, 'widget');
+    }
+    
+    
+    
+    function update($newInstance, $oldInstance) {
+        $instance = $oldInstance;
+//        $instance['title'] = strip_tags(self::getDefault($new_instance, 'title'));
+//        $instance['postTypes'] = strip_tags(self::getDefault($new_instance, 'postTypes', 'post'));
+//        $instance['showForPostTypes'] = strip_tags(self::getDefault($new_instance, 'showForPostTypes', ''));
+//        $instance['number'] = (int)strip_tags(self::getDefault($new_instance, 'number'));
+        foreach($newInstance as $key=>$value){
+            $instance[$key] = InputHelper::filter($value, $key);
+        }
+        $this->flush();
+
+        $alloptions = wp_cache_get('alloptions', 'options');
+        if (isset($alloptions[$this->id_base])){
+            delete_option($this->id_base);
+        }
+        
+        return $instance;
+    }
+
+    function form($instance) {
+        $view = $this->getView($instance);
+        $tpl = sprintf('sidebar/%s-form.phtml', $this->id_base);
+        try{
+        echo $view->render($tpl);
+        }  catch (Exception $e){
+            return parent::form($instance);
+        }
+/*        
+        $title = esc_attr(self::getDefault($instance, 'title', 'Записи автора'));
+        $postTypes = esc_attr(self::getDefault($instance, 'postTypes', 'post'));
+        $showForPostTypes = esc_attr(self::getDefault($instance, 'showForPostTypes', ''));
+        $number = esc_attr(self::getDefault($instance, 'number', 5));
+        ?>
+            <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></p>
+
+            <p><label for="<?php echo $this->get_field_id('postTypes'); ?>"><?php _e('Типы записей:'); ?></label>
+            <input id="<?php echo $this->get_field_id('postTypes'); ?>" name="<?php echo $this->get_field_name('postTypes'); ?>" type="text" value="<?php echo $postTypes; ?>" /></p>
+
+            <p><label for="<?php echo $this->get_field_id('showForPostTypes'); ?>"><?php _e('Показывать для типов записей:'); ?></label>
+            <input id="<?php echo $this->get_field_id('showForPostTypes'); ?>" name="<?php echo $this->get_field_name('showForPostTypes'); ?>" type="text" value="<?php echo $showForPostTypes; ?>" /></p>
+
+            <p><label for="<?php echo $this->get_field_id('number'); ?>"><?php _e('Количество записей:'); ?></label>
+            <input id="<?php echo $this->get_field_id('number'); ?>" name="<?php echo $this->get_field_name('number'); ?>" type="text" value="<?php echo $number; ?>" /></p>
+
+        <?php */
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+//add_action( 'widgets_init', array('WP_Widget_AuthorRecords', 'registerWidget'));
+
+class wpt_JurcatalogBy_Counters extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-counters', $name = 'Счетчики посещений', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-counters',
+            'description' => "Счетчики посещений Hotlog, Акавита"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_Counters', 'registerWidget'));
+
+class wpt_JurcatalogBy_RedBanner extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-banner240x400red', $name = 'Баннер 240x400 red.by', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-banner240x400red',
+            'description' => "Боковой баннер от Красной Баннерной"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_RedBanner', 'registerWidget'));
+
+class wpt_JurcatalogBy_Sape extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-sape', $name = 'Блок ссылок Sape', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-sape',
+            'description' => "SAPE.ru - Интеллектуальная система купли-продажи ссылок"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_Sape', 'registerWidget'));
+
+class wpt_JurcatalogBy_PopularPosts extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-popular-posts', $name = 'Популярные записи', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-popular-posts',
+            'description' => "Популярные записи"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_PopularPosts', 'registerWidget'));
+
+
+class wpt_JurcatalogBy_RelatedByTaxonomy extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-related-by-taxonomy', $name = 'Связанные по таксономии записи', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-popular-posts',
+            'description' => "Записи, связанные с текущей записью по таксономии, например по тегам или по категориям"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_RelatedByTaxonomy', 'registerWidget'));
+
+
+class wpt_JurcatalogBy_ForumLinks extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-forum-links', $name = 'Темы на форуме', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-forum-links',
+            'description' => "Темы на форуме связанные с данной записью"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_ForumLinks', 'registerWidget'));
+
+class wpt_JurcatalogBy_Facebook extends wpt_JurcatalogBy_Widget {
+    function __construct($id = 'widget-jurcatalog-facebook', $name = 'Facebook', 
+        $widget_ops = array(
+            'classname' => 'widget-jurcatalog-facebook',
+            'description' => "Виджет Facebook Facepile"
+        )) {
+        parent::__construct($id, $name, $widget_ops);
+
+    }
+    
+    public static function registerWidget(){
+        $item = new self();
+        register_widget(get_class($item));
+    }
+
+}
+
+add_action( 'widgets_init', array('wpt_JurcatalogBy_Facebook', 'registerWidget'));

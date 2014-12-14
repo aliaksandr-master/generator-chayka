@@ -1,0 +1,6 @@
+            <div class="form_field <%= fieldClass %>" data-form-field="<%= fieldName %>">
+                <label class="<%= labelClass %>"><%= fieldLabel %></label><select data-ng-init="options.<%= fieldName %>='reload'; <%= fieldName %>Options = <%= JSON.stringify(fieldOptions) %>" data-ng-model="options.<%= fieldName %>" data-ng-options="key as value for (key, value) in <%= fieldName %>Options" title="<%= fieldLabel %>"></select>
+            </div>
+            <div class="form_field stretch" data-form-field="authMode">
+                <label>Auth Mode</label><select data-ng-init="options.authMode='reload'; authOptions = {'reload': 'Page Reload', 'event': 'Publish Event'}" data-ng-model="options.authMode" data-ng-options="key as value for (key, value) in authOptions"  title="Auth Mode"></select>
+            </div>

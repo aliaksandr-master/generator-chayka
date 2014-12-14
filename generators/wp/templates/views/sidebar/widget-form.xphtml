@@ -1,0 +1,23 @@
+<?php 
+    $optionsYesNo = array('true'=>'Да', 'false'=>'Нет');
+?>
+<p><label for="<?php echo $id = $this->widget->get_field_id('height'); ?>">Высота в пикселях</label>
+<input class="widefat" id="<?php echo $id;?>" name="<?php echo $this->widget->get_field_name('height'); ?>" type="text" value="<?php echo $this->escape($this->height); ?>" /></p>
+<p><label for="<?php echo $id = $this->widget->get_field_id('show_faces'); ?>">Показывать лица</label>
+<?php 
+echo $this->formSelect($this->widget->get_field_name('show_faces'), $this->show_faces, 
+        array(
+            'class'=>'widefat',
+            'id' =>$id,
+            ), 
+        $optionsYesNo);
+?>
+<p><label for="<?php echo $id = $this->widget->get_field_id('header'); ?>">Показывать заголовок</label>
+<?php 
+echo $this->formSelect($this->widget->get_field_name('header'), $this->header, 
+        array(
+            'class'=>'widefat',
+            'id' =>$id,
+            ), 
+        $optionsYesNo);
+?>

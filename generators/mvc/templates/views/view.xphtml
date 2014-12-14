@@ -1,0 +1,9 @@
+<?php 
+	$this->declareVars(array(
+		'someParam' => 'Hello',
+		'anotherParam' => 'World!',
+	));
+?>
+<div>
+	<?php echo $this->someParam;?> <?php echo $this->anotherParam;?>
+</div>

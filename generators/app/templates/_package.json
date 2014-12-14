@@ -1,0 +1,21 @@
+{
+    "name": "<%= appName %>",
+    "description": "<%= appDescription %>",
+    "version": "0.0.0",
+    "author": "<%= appAuthor %> <<%= appAuthorEmail %>>",
+    "dependencies": {},
+    "devDependencies": {
+        "grunt": "*",
+        "grunt-autoprefixer": "*",
+        "grunt-contrib-clean": "*",
+        "grunt-contrib-concat": "*",
+        "grunt-contrib-csslint": "*",
+        "grunt-contrib-cssmin": "*",
+        "grunt-contrib-imagemin": "*",
+        "grunt-contrib-jshint": "*",
+        "grunt-contrib-less": "*",
+        "grunt-contrib-uglify": "*",
+        "grunt-contrib-watch": "*",
+        "load-grunt-tasks": "*"
+    }
+}

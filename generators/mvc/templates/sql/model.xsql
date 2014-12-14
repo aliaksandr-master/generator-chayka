@@ -1,0 +1,30 @@
+--
+-- Table structure for table `<%= dbTable %>`
+--
+
+CREATE TABLE IF NOT EXISTS `{prefix}<%= dbTable %>` (
+  `<%= dbIdColumn %>` int(11) NOT NULL,
+  `title` varchar(32) NOT NULL,
+  `dt_created` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `<%= dbTable %>`
+--
+ALTER TABLE `{prefix}<%= dbTable %>`
+ ADD PRIMARY KEY (`<%= dbIdColumn %>`), ADD KEY `title` (`title`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `<%= dbTable %>`
+--
+ALTER TABLE `{prefix}<%= dbTable %>`
+MODIFY `<%= dbIdColumn %>` int(11) NOT NULL AUTO_INCREMENT;
+

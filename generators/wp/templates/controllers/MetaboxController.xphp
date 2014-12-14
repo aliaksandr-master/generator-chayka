@@ -1,0 +1,31 @@
+<?php
+
+namespace AnotherGuru;
+
+use Chayka\Helpers\InputHelper;
+use Chayka\MVC\Controller;
+use Chayka\WP\Models\PostModel;
+
+class MetaboxController extends Controller{
+
+    public function init(){
+        global $post;
+
+        $action = InputHelper::getParam('action');
+        wp_nonce_field($action, $action.'_nonce' );
+
+        $richPost = PostModel::unpackDbRecord($post);
+
+        $this->view->assign('post', $richPost);
+
+        wp_enqueue_style('chayka-wp-admin');
+    }
+
+    public function portfolioAction(){
+
+    }
+
+    public function testimonialAction(){
+
+    }
+}

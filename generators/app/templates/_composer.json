@@ -1,0 +1,26 @@
+{
+    "name": "<%= packagistVendor %>/<%= packagistPackage %>",
+    "description": "<%= appDescription %>",
+    "minimum-stability": "dev",
+    "license": "<%= appLicense %>",
+    "authors": [
+        {
+            "name": "<%= appAuthor %>",
+            "email": "<%= appAuthorEmail %>"
+        }
+    ],
+
+    "autoload":{
+        "classmap": ["app/helpers", "app/models"]
+    },
+
+    "require":{
+    },
+
+    "requireDev":{
+    },
+
+    "suggest":{
+        "chayka/core_wpp": "dev-master"
+    }
+}

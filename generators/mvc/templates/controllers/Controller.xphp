@@ -1,0 +1,16 @@
+<?php
+
+namespace <%= phpNamespace %>;
+
+use Chayka\WP\MVC\Controller;
+use Chayka\Helpers\InputHelper;
+use Chayka\WP\Helpers\JsonHelper;
+
+class <%= controller %>Controller extends Controller{
+
+    public function init(){
+        // NlsHelper::load('main');
+        // InputHelper::captureInput();
+    }
+
+} 

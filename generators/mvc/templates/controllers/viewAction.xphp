@@ -1,0 +1,6 @@
+    public function <%= action %>Action(){
+    	$value = InputHelper::getParam('some-param', 'n/a');
+
+		$this->view->assign('someParam', $value);
+		// or $this->view->someParam = $value;
+    }

@@ -1,0 +1,26 @@
+    public function <%= action %>Action(){
+        //	AclHelper::apiAuthRequired();
+
+    	$value = InputHelper::checkParam('some-param')->required()->getValue();
+
+        InputHelper::validateInput(true);
+
+		$valid = true;
+
+		if(!$valid){
+			JsonHelper::respondError("Scary error message");
+		}
+
+		try{
+			//	do something useful
+			
+			$payload = array(
+				'param' => $value;
+			);
+
+			JsonHelper::respond($payload);
+
+		}catch(\Exception $e){
+			JsonHelper::respondException($e);
+		}
+    }

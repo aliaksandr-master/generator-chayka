@@ -1,0 +1,11 @@
+.DS_Store
+.nodemonignore
+.sass-cache/
+.idea/
+npm-debug.log
+node_modules/
+res/lib
+app
+vendor/
+composer.lock
+composer.phar
