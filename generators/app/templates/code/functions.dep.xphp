@@ -1,0 +1,16 @@
+<?php
+
+require_once 'vendor/autoload.php';
+
+if(!class_exists("<%= initDepPhpClass.replace('\\', '\\\\') %>")){
+    add_action( 'admin_notices', function () {
+?>
+    <div class="error">
+        <p><%= initDepMessage %></p>
+    </div>
+<?php
+	});
+}else{
+    require_once dirname(__FILE__).'/<%= appClass %>.php';
+	add_action('init', array("<%= phpNamespace.replace('\\', '\\\\') %>\\<%= appClass %>", "init"));
+}

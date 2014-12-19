@@ -9,8 +9,9 @@ class Theme extends WP\Theme{
     public static $instance;
 
     public static function init(){
-        self::$instance = $theme = new self(__FILE__, array());
-        // $theme->addSupport_Metaboxes();
+        self::$instance = $app = new self(__FILE__, array());
+
+        /* chayka: addSupport */        
     }
 
     /**

@@ -1,0 +1,10 @@
+/*
+Theme Name: <%= appName %>
+Theme URI: <%= gitRemoteRepo %>
+Author: <%= appAuthor %> <<%= appAuthorEmail %>>
+Author URI: <%= appAuthorUri %>
+Description: <%= appDescription %>
+Version: <%= appVersion %>
+License: <%= appLicense %>
+Tags: <%= appKeywords %>
+*/

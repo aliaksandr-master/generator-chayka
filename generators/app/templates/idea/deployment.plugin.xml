@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="WP Plugins" deleteMissingItems="true" createEmptyFolders="true" autoUploadExternalChanges="true">
+    <serverData>
+      <paths name="WP Plugins">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/Chayka.Core.wpp/vendor/chayka/auth-wpp/" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/Chayka.Core.wpp/vendor/chayka/auth-wpp/vendor" />
+            <excludedPath path="/Chayka.Core.wpp/vendor/chayka/auth-wpp/node_modules" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
+

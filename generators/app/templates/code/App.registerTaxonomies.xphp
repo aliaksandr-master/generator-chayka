@@ -1,0 +1,7 @@
+
+    /**
+     * Custom Taxonomies are to be added here
+     */
+    public function registerTaxonomies() {
+		/* chayka: registerTaxonomies */
+    }

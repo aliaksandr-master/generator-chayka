@@ -4,8 +4,7 @@
 .idea/
 npm-debug.log
 node_modules/
-res/lib
-app
+res/lib/
 vendor/
 composer.lock
 composer.phar

@@ -1,0 +1,7 @@
+
+    /**
+     * Routes are to be added here via $this->addRoute();
+     */
+    public function registerRoutes() {
+        $this->addRoute('default');
+    }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="PHP">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../WordPress" />
+          <root url="file://$MODULE_DIR$/../Chayka.Helpers/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.MVC/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.WP/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.Core.wpp" />
+          <root url="file://$MODULE_DIR$/../Chayka.Auth.wpp" />
+          <root url="file://$MODULE_DIR$/../Chayka.Email.wpp" />
+          <!-- chayka: includePath -->
+        </CLASSES>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../WordPress" />
+          <root url="file://$MODULE_DIR$/../Chayka.Helpers/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.MVC/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.WP/src" />
+          <root url="file://$MODULE_DIR$/../Chayka.Core.wpp" />
+          <root url="file://$MODULE_DIR$/../Chayka.Auth.wpp" />
+          <root url="file://$MODULE_DIR$/../Chayka.Email.wpp" />
+          <!-- chayka: includePath -->
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>
+

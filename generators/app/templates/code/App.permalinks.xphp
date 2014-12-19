@@ -1,0 +1,53 @@
+    
+    /* permalinks */
+
+    /**
+     * This is a hook for post_link and post_type_link
+     *
+     * @param string    $permalink
+     * @param WP_Post   $post
+     * @param boolean   $leavename
+     * @return string
+     */
+    public function postPermalink($permalink, $post, $leavename = false){
+        switch($post->post_type){
+            case 'post':
+                return '/entry/'.$post->ID.'/'.($leavename?'%postname%':$post->post_name);
+        }
+        return $permalink;
+    }
+    
+    /**
+     * This is a hook for term_link
+     *
+     * @param string $link
+     * @param object $term
+     * @param string $taxonomy
+     * @return string
+     */
+    public function termLink($link, $term, $taxonomy){
+        return $link;
+    }
+
+    /**
+     * This is a hook for author_link
+     *
+     * @param string $link
+     * @param integer $userId
+     * @param string $nicename
+     * @return string
+     */
+    public function userLink($link, $userId, $nicename){
+        return sprintf('/user/%s/', $nicename);
+    }
+
+    /**
+     * This is a hook for get_comment_link
+     *
+     * @param string $permalink
+     * @param object $comment
+     * @return string
+     */
+    public function commentPermalink($permalink, $comment){
+        return $permalink;
+    }

@@ -60,7 +60,7 @@ module.exports = function(grunt) {
                 // the files to concatenate
                 files:{
                     'style.css':[
-                        'res/src/style.css',
+                        'res/src/theme-header.css',
                         'res/tmp/css/min.css'
                     ]
                 }

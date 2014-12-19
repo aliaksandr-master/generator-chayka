@@ -1,0 +1,30 @@
+    
+    /* postProcessing */
+
+    /**
+     * This is a hook for save_post
+     *
+     * @param integer $postId
+     * @param WP_Post $post
+     */
+    public function savePost($postId, $post){
+        
+    }
+    
+    /**
+     * This is a hook for delete_post
+     *
+     * @param integer $postId
+     */
+    public function deletePost($postId){
+        
+    }
+    
+    /**
+     * This is a hook for trashed_post
+     *
+     * @param integer $postId
+     */
+    public function trashedPost($postId){
+        $this->deletePost($postId);
+    }

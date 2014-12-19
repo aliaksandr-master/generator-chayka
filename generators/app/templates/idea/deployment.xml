@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="<%= ideaDeploymentServer %>" deleteMissingItems="true" createEmptyFolders="true" autoUploadExternalChanges="true">
+    <serverData>
+      <paths name="<%= ideaDeploymentServer %>">
+        <serverdata>
+          <mappings>
+            <mapping deploy="<%= ideaDeploymentPath %>" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="<%= ideaDeploymentPath %>/vendor" />
+            <excludedPath path="<%= ideaDeploymentPath %>/node_modules" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
+

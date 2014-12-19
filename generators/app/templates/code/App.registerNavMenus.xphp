@@ -1,0 +1,7 @@
+
+    /**
+     * Register your nav menus here using $this->registerNavMenu();
+     */
+    public function registerNavMenus(){
+    	/* chayka: registerNavMenus */
+    }

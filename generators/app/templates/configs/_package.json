@@ -1,7 +1,7 @@
 {
     "name": "<%= appName %>",
     "description": "<%= appDescription %>",
-    "version": "0.0.0",
+    "version": "<%= appVersion %>",
     "author": "<%= appAuthor %> <<%= appAuthorEmail %>>",
     "dependencies": {},
     "devDependencies": {

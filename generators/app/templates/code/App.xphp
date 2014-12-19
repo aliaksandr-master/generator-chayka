@@ -1,0 +1,21 @@
+<?php
+
+namespace <%= phpNamespace %>;
+
+use Chayka\WP;
+
+class <%= appClass %> extends WP\<%= appClass %>{
+
+    public static $instance = null;
+
+    public static function init(){
+        if(!static::$instance){
+            static::$instance = $app = new self(__FILE__, array(
+                /* chayka: init/controllers */
+            ));
+
+            /* chayka: init/addSupport */
+        }
+    }
+
+}

@@ -1,0 +1,7 @@
+
+    /**
+     * Implement to add addShortcodes() calls;
+     */
+    public function registerShortcodes(){
+    	/* chayka: registerShortcodes */
+    }

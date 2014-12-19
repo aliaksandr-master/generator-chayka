@@ -1,0 +1,7 @@
+<?php
+
+require_once 'vendor/autoload.php';
+
+require_once dirname(__FILE__).'/<%= appClass %>.php';
+
+add_action('init', array("<%= phpNamespace.replace('\\', '\\\\') %>\\<%= appClass %>", "init"));

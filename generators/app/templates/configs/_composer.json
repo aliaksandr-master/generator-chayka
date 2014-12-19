@@ -3,6 +3,7 @@
     "description": "<%= appDescription %>",
     "minimum-stability": "dev",
     "license": "<%= appLicense %>",
+    "version": "<%= appVersion %>",
     "authors": [
         {
             "name": "<%= appAuthor %>",
@@ -21,6 +22,5 @@
     },
 
     "suggest":{
-        "chayka/core_wpp": "dev-master"
     }
 }

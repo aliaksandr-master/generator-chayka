@@ -1,0 +1,9 @@
+
+    /**
+     * Register scripts and styles here using $this->registerScript() and $this->registerStyle()
+     *
+     * @param bool $minimize
+     */
+    public function registerResources($minimize = false) {
+		/* chayka: registerResources */
+    }

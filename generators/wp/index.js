@@ -29,7 +29,7 @@ module.exports = yeoman.generators.Base.extend({
             return !!value || 'This field is required';
         };
 
-        this.generateOptionsFormField = function(){
+        this.generateOptionsFormField = function(done){
             var prompts = [
                 {
                     name: 'fieldType',
@@ -37,16 +37,19 @@ module.exports = yeoman.generators.Base.extend({
                     message: 'Generate field?',
                     default: 'input',
                     choices: [
+                        {name: '-no-', value: ''},
                         {name: 'input', value: 'input'},
                         {name: 'select', value: 'select'},
                         {name: 'textarea', value: 'textarea'},
-                        {name: 'no', value: ''},
                     ]
                 },
                 {
                     name: 'fieldLabel',
                     message: 'Field label:',
-                    validate: this.checkRequired
+                    validate: this.checkRequired,
+                    when: function(answers){
+                        return !!answers.fieldType;
+                    }
                 },
                 {
                     name: 'fieldName',
@@ -54,6 +57,9 @@ module.exports = yeoman.generators.Base.extend({
                     validate: this.checkRequired,
                     default: function(answers){
                         return g._.camelize(answers.fieldLabel.toLowerCase());
+                    },
+                    when: function(answers){
+                        return !!answers.fieldType;
                     }
                 },
                 {
@@ -63,7 +69,10 @@ module.exports = yeoman.generators.Base.extend({
                     default: 'fullsize',
                     choices: [
                         'fullsize', 'stretch',
-                    ]
+                    ],
+                    when: function(answers){
+                        return !!answers.fieldType;
+                    }
                 },
                 {
                     name: 'labelClass',
@@ -85,24 +94,50 @@ module.exports = yeoman.generators.Base.extend({
                         if(answers.fieldClass === 'fullsize'){
                             answers.labelClass = '';
                         }
-                        return answers.fieldClass === 'stretch';
+                        return !!answers.fieldType && answers.fieldClass === 'stretch';
                     }
                 },
             ];
             var fieldCode = '';
             this.prompt(prompts, function(answers) {
-                fieldCode = g._.template(g.fs.read(g.templatePath('views/admin/input.xphtml')), answers);
-                g.log(fieldCode);
-                done();
+                fieldCode = '';
+                switch(answers.fieldType){
+                    case 'input':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/admin/input.xphtml')), answers);
+                        break;
+                    case 'select':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/admin/select.xphtml')), answers);
+                        break;
+                    case 'textarea':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/admin/textarea.xphtml')), answers);
+                        break;
+
+                }
+                done(fieldCode);
             });
             return fieldCode;
         };
 
-        this.generateOptionsFormField();
+        this.generateOptionsFormFields = function(done){
+            var fields = '';
+            var fieldReady = function(fieldCode){
+                if(fieldCode){
+                    fields += fieldCode;
+                    g.generateOptionsFormField(fieldReady);
+                }else{
+                    done(fields);
+                }
+            };
+
+            g.generateOptionsFormField(fieldReady);
+        };
+
 
         this.Chayka = {
             options: this.readJSON('chayka.json')
         };
+
+        done();
     },
     prompting: function() {
         var done = this.async();
@@ -111,32 +146,57 @@ module.exports = yeoman.generators.Base.extend({
         // Have Yeoman greet the user.
         this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
         var prompts = [{
-            name: 'helpers',
-            message: 'Please select helpers you need:',
-            type: 'checkbox',
+            name: 'mechanism',
+            message: 'Please select mechanism you need to generate:',
+            type: 'list',
             choices: function(){
                 return [
                     {
-                        name: 'EmailHelper',
-                        value: 'email',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/EmailHelper.php'))
+                        name: 'Metabox',
+                        value: 'metabox',
                     }, {
-                        name: 'NlsHelper',
-                        value: 'nls',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/NlsHelper.php'))
+                        name: 'Console Page',
+                        value: 'console-page',
                     }, {
-                        name: 'OptionHelper',
-                        value: 'option',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/OptionHelper.php'))
+                        name: 'Sidebar Widget',
+                        value: 'sidebar-widget',
+                    }, {
+                        name: 'Shortcode',
+                        value: 'shortcode',
+                    }, {
+                        name: 'Custom Post Type',
+                        value: 'post-type',
+                    }, {
+                        name: 'Taxonomy',
+                        value: 'taxonomy',
                     }, 
                 ];
             },
-            default: 'plugin'
+            default: ''
         }, {
-            name: 'parentTheme',
-            message: 'Parent theme name, if omitted simple (non-child) theme will be created',
+            name: 'pageTitle',
+            message: 'Console Page Title',
+            validate: this.checkRequired,
+            default: function(answers){
+                return g._.camelize(answers.fieldLabel.toLowerCase());
+            },
             when: function(answers) {
-                return answers.appType === 'child-theme';
+                return answers.mechanism === 'console-page';
+            }
+        }, {
+            name: 'pageName',
+            message: 'Console Page ID',
+            default: function(answers){
+                return g._.camelize(answers.pageTitle.toLowerCase());
+            },
+            when: function(answers) {
+                return answers.mechanism === 'console-page';
+            }
+        }, {
+            name: 'parentPage',
+            message: 'Parent console page name, if omitted simple (non-subpage) page will be created',
+            when: function(answers) {
+                return answers.appType === 'console-page';
             }
         }];
 
@@ -157,50 +217,50 @@ module.exports = yeoman.generators.Base.extend({
             this.mkdir(this.destinationPath('app/helpers'));
         },
 
-        helpers: function() {
-            var vars = this.Chayka.options;
-            vars.phpAppClass = vars.appType === 'plugin' ? 'Plugin':'Theme'; 
+        // helpers: function() {
+        //     var vars = this.Chayka.options;
+        //     vars.phpAppClass = vars.appType === 'plugin' ? 'Plugin':'Theme'; 
 
-            if(vars.helpers.indexOf('email') >= 0){
-                this.template(
-                    this.templatePath('helpers/EmailHelper.xphp'), 
-                    this.destinationPath('app/helpers/EmailHelper.php'), 
-                    vars
-                );
+        //     if(vars.helpers.indexOf('email') >= 0){
+        //         this.template(
+        //             this.templatePath('helpers/EmailHelper.xphp'), 
+        //             this.destinationPath('app/helpers/EmailHelper.php'), 
+        //             vars
+        //         );
 
-                this.mkdir(this.destinationPath('app/views'));
-                this.mkdir(this.destinationPath('app/views/email'));
+        //         this.mkdir(this.destinationPath('app/views'));
+        //         this.mkdir(this.destinationPath('app/views/email'));
 
-                this.fs.copy(
-                    this.templatePath('views/email/template.xphtml'), 
-                    this.destinationPath('app/views/email/template.phtml')
-                );
-            }
+        //         this.fs.copy(
+        //             this.templatePath('views/email/template.xphtml'), 
+        //             this.destinationPath('app/views/email/template.phtml')
+        //         );
+        //     }
 
-            if(vars.helpers.indexOf('nls') >= 0){
-                this.template(
-                    this.templatePath('helpers/NlsHelper.xphp'), 
-                    this.destinationPath('app/helpers/NlsHelper.php'), 
-                    vars
-                );
+        //     if(vars.helpers.indexOf('nls') >= 0){
+        //         this.template(
+        //             this.templatePath('helpers/NlsHelper.xphp'), 
+        //             this.destinationPath('app/helpers/NlsHelper.php'), 
+        //             vars
+        //         );
 
-                this.mkdir(this.destinationPath('app/nls'));
+        //         this.mkdir(this.destinationPath('app/nls'));
 
-                this.fs.copy(
-                    this.templatePath('nls/main._.xphp'), 
-                    this.destinationPath('app/nls/main._.php')
-                );
-            }
+        //         this.fs.copy(
+        //             this.templatePath('nls/main._.xphp'), 
+        //             this.destinationPath('app/nls/main._.php')
+        //         );
+        //     }
 
-            if(vars.helpers.indexOf('option') >= 0){
-                this.template(
-                    this.templatePath('helpers/OptionHelper.xphp'), 
-                    this.destinationPath('app/helpers/OptionHelper.php'), 
-                    vars
-                );
-            }
+        //     if(vars.helpers.indexOf('option') >= 0){
+        //         this.template(
+        //             this.templatePath('helpers/OptionHelper.xphp'), 
+        //             this.destinationPath('app/helpers/OptionHelper.php'), 
+        //             vars
+        //         );
+        //     }
 
-        },
+        // },
 
     },
     install: function() {

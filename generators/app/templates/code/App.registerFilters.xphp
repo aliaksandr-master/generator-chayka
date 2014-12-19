@@ -1,0 +1,7 @@
+
+    /**
+     * Register your action hooks here using $this->addFilter();
+     */
+    public function registerFilters() {
+		/* chayka: registerFilters */
+    }

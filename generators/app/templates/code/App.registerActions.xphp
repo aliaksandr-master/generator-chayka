@@ -1,0 +1,7 @@
+
+    /**
+     * Register your action hooks here using $this->addAction();
+     */
+    public function registerActions() {
+    	/* chayka: registerActions */
+    }

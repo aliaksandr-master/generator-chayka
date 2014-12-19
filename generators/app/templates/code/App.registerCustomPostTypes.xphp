@@ -1,0 +1,7 @@
+
+    /**
+     * Custom post type are to be added here
+     */
+    public function registerCustomPostTypes() {
+		/* chayka: registerCustomPostTypes */	
+    }

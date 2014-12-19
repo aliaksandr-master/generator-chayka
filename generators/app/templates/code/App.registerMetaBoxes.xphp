@@ -1,0 +1,7 @@
+    
+    /**
+     * Add custom metaboxes here via addMetaBox() calls;
+     */
+    public function registerMetaBoxes(){
+        /* chayka: registerMetaBoxes */
+    }
