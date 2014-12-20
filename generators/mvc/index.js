@@ -35,7 +35,6 @@ module.exports = yeoman.generators.Base.extend({
         var g = this;
         // this.log(_);
         // Have Yeoman greet the user.
-        this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
         var prompts = [{
             name: 'wizard',
             message: 'Please select wizard',
@@ -91,6 +90,13 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.wizard === 'action';
             }
         }, {
+            name: 'actionDummy',
+            message: 'Put some dummy handy code?',
+            type: 'confirm',
+            when: function(answers) {
+                return answers.wizard === 'action';
+            }
+        }, {
             name: 'model',
             message: 'Model name:',
             type: 'input',
@@ -121,12 +127,18 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.wizard === 'model';
             }
         }];
-
-        this.prompt(prompts, function(props) {
-            _.extend(this.Chayka.options, props);
-            // this.log(this.Chayka.options);
+        var vars = this.Chayka.options;
+        if(g.options.externalCall){
+            g._.extend(vars, g.options.externalCall);
             done();
-        }.bind(this));
+        }else{
+            this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
+            this.prompt(prompts, function(props) {
+                _.extend(this.Chayka.options, props);
+                // this.log(this.Chayka.options);
+                done();
+            }.bind(this));
+        }
     },
     writing: {
         directories: function() {
@@ -154,9 +166,9 @@ module.exports = yeoman.generators.Base.extend({
             var vars = this.Chayka.options;
             if(vars.wizard === 'action'){
                 vars.action = this._.camelize(vars.action).replace(/Action$/, '');
-                var actionCode = this._.template(this.fs.read(this.templatePath(vars.actionType === 'view' ?
-                    'controllers/viewAction.xphp':
-                    'controllers/apiAction.xphp'
+                var actionCode = this._.template(this.fs.read(this.templatePath(vars.actionDummy?
+                    (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
+                    'controllers/Action.empty.xphp'
                 )), vars);
                 var controllerCode = this.fs.read(this.destinationPath('app/controllers/' + vars.controllerFile));
 

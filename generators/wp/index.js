@@ -136,7 +136,6 @@ module.exports = yeoman.generators.Base.extend({
         this.Chayka = {
             options: this.readJSON('chayka.json')
         };
-
         done();
     },
     prompting: function() {
@@ -177,34 +176,38 @@ module.exports = yeoman.generators.Base.extend({
             name: 'pageTitle',
             message: 'Console Page Title',
             validate: this.checkRequired,
+            when: function(answers) {
+                return answers.mechanism === 'console-page';
+            }
+        }, {
+            name: 'pageSlug',
+            message: 'Console Page Slug',
             default: function(answers){
-                return g._.camelize(answers.fieldLabel.toLowerCase());
+                return g._.slugify(answers.pageTitle);
             },
             when: function(answers) {
                 return answers.mechanism === 'console-page';
             }
         }, {
-            name: 'pageName',
-            message: 'Console Page ID',
-            default: function(answers){
-                return g._.camelize(answers.pageTitle.toLowerCase());
-            },
+            name: 'pageParent',
+            message: 'Parent console page slug, if omitted simple (non-subpage) page will be created',
             when: function(answers) {
                 return answers.mechanism === 'console-page';
-            }
-        }, {
-            name: 'parentPage',
-            message: 'Parent console page name, if omitted simple (non-subpage) page will be created',
-            when: function(answers) {
-                return answers.appType === 'console-page';
             }
         }];
 
-        this.prompt(prompts, function(props) {
-            _.extend(this.Chayka.options, props);
-            this.log(this.Chayka.options);
-
-            done();
+        this.prompt(prompts, function(answers) {
+            if(answers.mechanism === 'console-page'){
+                this.generateOptionsFormFields(function(fieldsCode){
+                    answers.fields = fieldsCode;
+    
+                    _.extend(g.Chayka.options, answers);
+                    done();
+                });
+            }else{
+                _.extend(this.Chayka.options, answers);
+                done();
+            }
         }.bind(this));
     },
     writing: {
@@ -215,6 +218,94 @@ module.exports = yeoman.generators.Base.extend({
         directories: function() {
             this.mkdir(this.destinationPath('app'));
             this.mkdir(this.destinationPath('app/helpers'));
+        },
+
+        consolePage: function() {
+            var vars = this.Chayka.options;
+            var g = this;
+            if(vars.mechanism === 'console-page'){
+                this.composeWith('chayka', 
+                    {
+                        options: {
+                            'externalCall': 'enable-console-pages',
+                        }
+                    }
+                );
+                var addPageCode = g._.template(g.fs.read(g.templatePath(vars.pageParent?
+                    'code/addConsoleSubPage.xphp':
+                    'code/addConsolePage.xphp')), vars);
+                var appFile = g.destinationPath(vars.appType === 'plugin'?'Plugin.php':'Theme.php');
+                var appCode = g.fs.read(appFile);
+
+                /* chayka: registerConsolePages */
+                appCode = appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*registerConsolePages\s*\*\//, function(match){
+                    return '\n'+addPageCode + match;
+                });
+
+                g.fs.write(appFile, appCode);
+
+
+                // controller
+                this.mkdir(this.destinationPath('app/controllers'));
+
+                var controllerFile = g.destinationPath('app/controllers/AdminController.php');
+
+                if(!fs.existsSync(controllerFile)){
+                    this.template(g.templatePath('controllers/AdminController.xphp'), controllerFile, vars);
+                }
+
+                // action
+                this.composeWith('chayka:mvc', 
+                    {
+                        options: {
+                            'externalCall': {
+                                wizard: 'action',
+                                action: vars.pageSlug,
+                                actionType: 'api',
+                                actionDummy: false,
+                                controllerFile: 'AdminController.php',
+                            },
+                        }
+                    }
+                );
+
+                // view
+                var viewFile = g.destinationPath('app/views/admin/' + vars.pageSlug + '.phtml');
+                var viewCode = fs.existsSync(viewFile)?
+                    g.fs.read(viewFile):
+                    g._.template(g.fs.read(g.templatePath('views/admin/index.xphtml')), vars);
+
+                viewCode = viewCode.replace(/(?:\n)\s*<!--\s*fields\s*-->/g, function(match){
+                    return '\n'+vars.fields + match;
+                });
+                g.fs.write(viewFile, viewCode);
+            }
+        },
+
+        metabox: function() {
+            var vars = this.Chayka.options;
+            if(vars.mechanism === 'metabox'){
+                this.composeWith('chayka', 
+                    {
+                        options: {
+                            'externalCall': 'enable-metaboxes',
+                        }
+                    }
+                );
+            }
+        },
+
+        sidebarWidget: function() {
+            var vars = this.Chayka.options;
+            if(vars.mechanism === 'sidebar-widget'){
+                this.composeWith('chayka', 
+                    {
+                        options: {
+                            'externalCall': 'enable-sidebar-widgets',
+                        }
+                    }
+                );
+            }
         },
 
         // helpers: function() {

@@ -3,12 +3,5 @@
      * Registering console pages
      */
     public function registerConsolePages(){
-        // $this->addConsolePage('Поисковая система', 'update_core', 'chayka-search-admin',
-        //     '/admin/indexer');
-
-        // $this->addConsoleSubPage('chayka-search-admin',
-        //     'Настройка', 'update_core', 'chayka-search-setup',
-        //     '/admin/setup-search-engine');
-        
         /* chayka: registerConsolePages */
     }

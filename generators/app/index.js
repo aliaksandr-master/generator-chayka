@@ -49,6 +49,8 @@ module.exports = yeoman.generators.Base.extend({
 
         var g = this;
 
+        // g.log(g);
+
         g.appExists = fs.existsSync(g.destinationPath('Theme.php')) || fs.existsSync(g.destinationPath('Plugin.php'));
 
         // g.log('appExists: '+g.appExists);
@@ -141,7 +143,6 @@ module.exports = yeoman.generators.Base.extend({
         var g = this;
         var config = g.Chayka.options;
         // Have Yeoman greet the user.
-        this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
         var prompts = [{
             name: 'wizard',
             message: 'Looks like the app already exists. Select what you are going to do:',
@@ -666,29 +667,52 @@ module.exports = yeoman.generators.Base.extend({
             },
             store: true
         }];
-        this.prompt(prompts, function(answers) {
+        var vars = this.Chayka.options;
+        switch(g.options.externalCall){
+            case 'enable-console-pages':
+                vars.wizard = 'update-code';
+                vars.support = ['ConsolePages'];
+                vars.register = ['registerConsolePages'];
+                break;
+            case 'enable-metaboxes':
+                vars.wizard = 'update-code';
+                vars.support = ['Metaboxes'];
+                vars.register = ['registerMetaboxes'];
+                break;
+            case 'enable-sidebar-widgets':
+                vars.wizard = 'update-code';
+                vars.support = [];
+                vars.register = [];
+                break;
+            default:
+                this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
+                this.prompt(prompts, function(answers) {
 
-            if(answers.appType === 'plugin'){
-                answers.ideaDeploymentServer = answers.ideaDeploymentServerPlugin;
-                delete answers.ideaDeploymentServerPlugin;
-            }else{
-                answers.ideaDeploymentServer = answers.ideaDeploymentServerTheme;
-                delete answers.ideaDeploymentServerTheme;
-            }
-            answers.appClass = answers.appType === 'plugin'? 'Plugin':'Theme';
-            answers.chaykaFrameworkDeps = g.resolveDeps(answers.chaykaFrameworkDeps.length?answers.chaykaFrameworkDeps:['wp']);
+                    if(answers.appType === 'plugin'){
+                        answers.ideaDeploymentServer = answers.ideaDeploymentServerPlugin;
+                        delete answers.ideaDeploymentServerPlugin;
+                    }else{
+                        answers.ideaDeploymentServer = answers.ideaDeploymentServerTheme;
+                        delete answers.ideaDeploymentServerTheme;
+                    }
+                    answers.appClass = answers.appType === 'plugin'? 'Plugin':'Theme';
+                    answers.chaykaFrameworkDeps = g.resolveDeps(answers.chaykaFrameworkDeps.length?answers.chaykaFrameworkDeps:['wp']);
 
 
-            this.Chayka = {
-                options: answers
-            };
-            this.appname = answers.appName;
-            this.description = answers.appDescription;
+                    this.Chayka = {
+                        options: answers
+                    };
+                    this.appname = answers.appName;
+                    this.description = answers.appDescription;
 
 
-            // this.log(this);
+                    // this.log(this);
+                    done();
+                }.bind(this));
+        }
+        if(g.options.externalCall){
             done();
-        }.bind(this));
+        }
     },
     writing: {
         newInstance: function() {
