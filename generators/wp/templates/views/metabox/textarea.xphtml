@@ -1,0 +1,7 @@
+    <div class="form_field <%= fieldClass %> <%= _.underscored(fieldName) %>">
+        <label  class="<%= labelClass %>"><%= fieldLabel %></label>
+        <span class="input">
+        	<textarea name="metabox-<%= fieldName %>"><?php echo $this->escape($this->post->getMeta('<%= fieldName %>')); ?></textarea>
+    	</span>
+        <div class="message"></div>
+    </div>

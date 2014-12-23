@@ -1,0 +1,18 @@
+    <?php /* <%= fieldName %> */
+    	$arr = array(
+    		'1' => 'Yes',
+    		'0' => 'No',
+		);
+		$val = $this->post->getMeta('<%= fieldName %>');
+    ?>
+    <div class="form_field <%= fieldClass %> <%= _.underscored(fieldName) %>">
+        <label  class="<%= labelClass %>"><%= fieldLabel %></label>
+        <span class="input">
+        	<select name="metabox-<%= fieldName %>">
+        	<?php foreach ($arr as $value => $label): ?>
+        		<option value="<?php echo $this->escape($value);?>"<?php if($val === $value){echo " selected";}?>><?php echo $this->escape($label);?></option>
+        	<?php endforeach; ?>
+        	</select>
+    	</span>
+        <div class="message"></div>
+    </div>

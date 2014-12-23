@@ -1,0 +1,1 @@
+        $this->addMetaBox('<%= metaboxSlug %>', '<%= metaboxTitle %>', '/metabox/<%= metaboxSlug %>', '<%= metaboxContext %>', '<%= metaboxPriority %>', <%= metaboxScreens %>);

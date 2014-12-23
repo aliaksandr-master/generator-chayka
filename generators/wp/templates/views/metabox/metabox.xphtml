@@ -1,8 +1,0 @@
-<?php ; ?>
-<div class="metabox">
-    <div class="form_field fullsize">
-        <label class="">Link to project:</label>
-        <span class="input"><input name="metabox-portfolio_project_link" type="url" value="<?php echo $this->escape($this->post->getMeta('portfolio_project_link')); ?>"/></span>
-        <div class="message"></div>
-    </div>
-</div>

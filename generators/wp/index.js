@@ -29,77 +29,79 @@ module.exports = yeoman.generators.Base.extend({
             return !!value || 'This field is required';
         };
 
+        var fieldPrompts = [
+            {
+                name: 'fieldType',
+                type: 'list',
+                message: 'Generate field?',
+                default: 'input',
+                choices: [
+                    {name: '-no-', value: ''},
+                    {name: 'input', value: 'input'},
+                    {name: 'select', value: 'select'},
+                    {name: 'textarea', value: 'textarea'},
+                ]
+            },
+            {
+                name: 'fieldLabel',
+                message: 'Field label:',
+                validate: this.checkRequired,
+                when: function(answers){
+                    return !!answers.fieldType;
+                }
+            },
+            {
+                name: 'fieldName',
+                message: 'Field name:',
+                validate: this.checkRequired,
+                default: function(answers){
+                    return g._.camelize(answers.fieldLabel.toLowerCase());
+                },
+                when: function(answers){
+                    return !!answers.fieldType;
+                }
+            },
+            {
+                name: 'fieldClass',
+                type: 'list',
+                message: 'Field class',
+                default: 'fullsize',
+                choices: [
+                    'fullsize', 'stretch',
+                ],
+                when: function(answers){
+                    return !!answers.fieldType;
+                }
+            },
+            {
+                name: 'labelClass',
+                type: 'list',
+                message: 'Label class',
+                default: 'width50',
+                choices: [
+                    'width10', 
+                    'width20', 
+                    'width30', 
+                    'width40', 
+                    'width50', 
+                    'width60', 
+                    'width70', 
+                    'width80', 
+                    'width90', 
+                ],
+                when: function(answers){
+                    if(answers.fieldClass === 'fullsize'){
+                        answers.labelClass = '';
+                    }
+                    return !!answers.fieldType && answers.fieldClass === 'stretch';
+                }
+            },
+        ];
+
+
         this.generateOptionsFormField = function(done){
-            var prompts = [
-                {
-                    name: 'fieldType',
-                    type: 'list',
-                    message: 'Generate field?',
-                    default: 'input',
-                    choices: [
-                        {name: '-no-', value: ''},
-                        {name: 'input', value: 'input'},
-                        {name: 'select', value: 'select'},
-                        {name: 'textarea', value: 'textarea'},
-                    ]
-                },
-                {
-                    name: 'fieldLabel',
-                    message: 'Field label:',
-                    validate: this.checkRequired,
-                    when: function(answers){
-                        return !!answers.fieldType;
-                    }
-                },
-                {
-                    name: 'fieldName',
-                    message: 'Field name:',
-                    validate: this.checkRequired,
-                    default: function(answers){
-                        return g._.camelize(answers.fieldLabel.toLowerCase());
-                    },
-                    when: function(answers){
-                        return !!answers.fieldType;
-                    }
-                },
-                {
-                    name: 'fieldClass',
-                    type: 'list',
-                    message: 'Field class',
-                    default: 'fullsize',
-                    choices: [
-                        'fullsize', 'stretch',
-                    ],
-                    when: function(answers){
-                        return !!answers.fieldType;
-                    }
-                },
-                {
-                    name: 'labelClass',
-                    type: 'list',
-                    message: 'Label class',
-                    default: 'width50',
-                    choices: [
-                        'width10', 
-                        'width20', 
-                        'width30', 
-                        'width40', 
-                        'width50', 
-                        'width60', 
-                        'width70', 
-                        'width80', 
-                        'width90', 
-                    ],
-                    when: function(answers){
-                        if(answers.fieldClass === 'fullsize'){
-                            answers.labelClass = '';
-                        }
-                        return !!answers.fieldType && answers.fieldClass === 'stretch';
-                    }
-                },
-            ];
             var fieldCode = '';
-            this.prompt(prompts, function(answers) {
+            this.prompt(fieldPrompts, function(answers) {
                 fieldCode = '';
                 switch(answers.fieldType){
                     case 'input':
@@ -130,6 +132,76 @@ module.exports = yeoman.generators.Base.extend({
             };
 
             g.generateOptionsFormField(fieldReady);
+        };
+
+        this.generateMetaboxFormField = function(done){
+            var fieldCode = '';
+            this.prompt(fieldPrompts, function(answers) {
+                fieldCode = '';
+                switch(answers.fieldType){
+                    case 'input':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/metabox/input.xphtml')), answers);
+                        break;
+                    case 'select':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/metabox/select.xphtml')), answers);
+                        break;
+                    case 'textarea':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/metabox/textarea.xphtml')), answers);
+                        break;
+
+                }
+                done(fieldCode);
+            });
+            return fieldCode;
+        };
+
+        this.generateMetaboxFormFields = function(done){
+            var fields = '';
+            var fieldReady = function(fieldCode){
+                if(fieldCode){
+                    fields += fieldCode;
+                    g.generateMetaboxFormField(fieldReady);
+                }else{
+                    done(fields);
+                }
+            };
+
+            g.generateMetaboxFormField(fieldReady);
+        };
+
+        this.generateSidebarWidgetFormField = function(done){
+            var fieldCode = '';
+            this.prompt(fieldPrompts, function(answers) {
+                fieldCode = '';
+                switch(answers.fieldType){
+                    case 'input':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/sidebar/input.xphtml')), answers);
+                        break;
+                    case 'select':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/sidebar/select.xphtml')), answers);
+                        break;
+                    case 'textarea':
+                        fieldCode = g._.template(g.fs.read(g.templatePath('views/sidebar/textarea.xphtml')), answers);
+                        break;
+
+                }
+                done(fieldCode);
+            });
+            return fieldCode;
+        };
+
+        this.generateSidebarWidgetFormFields = function(done){
+            var fields = '';
+            var fieldReady = function(fieldCode){
+                if(fieldCode){
+                    fields += fieldCode;
+                    g.generateSidebarWidgetFormField(fieldReady);
+                }else{
+                    done(fields);
+                }
+            };
+
+            g.generateSidebarWidgetFormField(fieldReady);
         };
 
 
@@ -194,11 +266,56 @@ module.exports = yeoman.generators.Base.extend({
             when: function(answers) {
                 return answers.mechanism === 'console-page';
             }
+        }, {
+            name: 'metaboxTitle',
+            message: 'Metabox Title',
+            validate: this.checkRequired,
+            when: function(answers) {
+                return answers.mechanism === 'metabox';
+            }
+        }, {
+            name: 'metaboxSlug',
+            message: 'Metabox Slug',
+            default: function(answers){
+                return g._.slugify(answers.metaboxTitle);
+            },
+            when: function(answers) {
+                return answers.mechanism === 'metabox';
+            }
+        }, {
+            name: 'metaboxContext',
+            message: 'Metabox Context:',
+            type: 'list',
+            choices: ['normal', 'advanced', 'side'],
+            when: function(answers) {
+                return answers.mechanism === 'metabox';
+            }
+        }, {
+            name: 'metaboxPriority',
+            message: 'Metabox Priority:',
+            type: 'list',
+            choices: ['high', 'core', 'default', 'low'],
+            when: function(answers) {
+                return answers.mechanism === 'metabox';
+            }
+        }, {
+            name: 'metaboxPostTypes',
+            message: 'Space separated Metabox Post Types (screens), if omited, will be used for all types:',
+            when: function(answers) {
+                return answers.mechanism === 'metabox';
+            }
         }];
 
         this.prompt(prompts, function(answers) {
             if(answers.mechanism === 'console-page'){
                 this.generateOptionsFormFields(function(fieldsCode){
+                    answers.fields = fieldsCode;
+    
+                    _.extend(g.Chayka.options, answers);
+                    done();
+                });
+            }else if(answers.mechanism === 'metabox'){
+                this.generateMetaboxFormFields(function(fieldsCode){
                     answers.fields = fieldsCode;
     
                     _.extend(g.Chayka.options, answers);
@@ -239,7 +356,7 @@ module.exports = yeoman.generators.Base.extend({
 
                 /* chayka: registerConsolePages */
                 appCode = appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*registerConsolePages\s*\*\//, function(match){
-                    return '\n'+addPageCode + match;
+                    return '\n' + addPageCode + match;
                 });
 
                 g.fs.write(appFile, appCode);
@@ -284,6 +401,7 @@ module.exports = yeoman.generators.Base.extend({
 
         metabox: function() {
             var vars = this.Chayka.options;
+            var g = this;
             if(vars.mechanism === 'metabox'){
                 this.composeWith('chayka', 
                     {
@@ -292,6 +410,55 @@ module.exports = yeoman.generators.Base.extend({
                         }
                     }
                 );
+                vars.metaboxScreens = vars.metaboxPostTypes?
+                    'array("' + vars.metaboxPostTypes.split(/[\s,]+/).join('", "') + '")':
+                    'null';
+                var addMetaboxCode = g._.template(g.fs.read(g.templatePath('code/addMetaBox.xphp')), vars);
+                var appFile = g.destinationPath(vars.appType === 'plugin'?'Plugin.php':'Theme.php');
+                var appCode = g.fs.read(appFile);
+
+                /* chayka: registerMetaBoxes */
+                appCode = appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*registerMetaBoxes\s*\*\//, function(match){
+                    return '\n' + addMetaboxCode + match;
+                });
+
+                g.fs.write(appFile, appCode);
+
+
+                // controller
+                this.mkdir(this.destinationPath('app/controllers'));
+
+                var controllerFile = g.destinationPath('app/controllers/MetaboxController.php');
+
+                if(!fs.existsSync(controllerFile)){
+                    this.template(g.templatePath('controllers/MetaboxController.xphp'), controllerFile, vars);
+                }
+
+                // action
+                this.composeWith('chayka:mvc', 
+                    {
+                        options: {
+                            'externalCall': {
+                                wizard: 'action',
+                                action: vars.metaboxSlug,
+                                actionType: 'api',
+                                actionDummy: false,
+                                controllerFile: 'MetaboxController.php',
+                            },
+                        }
+                    }
+                );
+
+                // view
+                var viewFile = g.destinationPath('app/views/metabox/' + vars.metaboxSlug + '.phtml');
+                var viewCode = fs.existsSync(viewFile)?
+                    g.fs.read(viewFile):
+                    g._.template(g.fs.read(g.templatePath('views/metabox/index.xphtml')), vars);
+
+                viewCode = viewCode.replace(/(?:\n)\s*<!--\s*fields\s*-->/g, function(match){
+                    return '\n'+vars.fields + match;
+                });
+                g.fs.write(viewFile, viewCode);
             }
         },
 

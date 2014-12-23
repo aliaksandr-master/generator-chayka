@@ -1,6 +1,6 @@
 <?php
 
-namespace AnotherGuru;
+namespace <%= phpNamespace %>;
 
 use Chayka\Helpers\InputHelper;
 use Chayka\MVC\Controller;
@@ -21,11 +21,4 @@ class MetaboxController extends Controller{
         wp_enqueue_style('chayka-wp-admin');
     }
 
-    public function portfolioAction(){
-
-    }
-
-    public function testimonialAction(){
-
-    }
 }

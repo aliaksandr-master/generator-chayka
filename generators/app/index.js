@@ -86,7 +86,7 @@ module.exports = yeoman.generators.Base.extend({
 
             /* chayka: init/addSupport */
             return appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*init\/addSupport\s*\*\//, function(match){
-                return '\n'+supportCode + match;
+                return (supportCode?'\n'+supportCode:'') + match;
             });
         };
 
@@ -677,7 +677,7 @@ module.exports = yeoman.generators.Base.extend({
             case 'enable-metaboxes':
                 vars.wizard = 'update-code';
                 vars.support = ['Metaboxes'];
-                vars.register = ['registerMetaboxes'];
+                vars.register = ['registerMetaBoxes'];
                 break;
             case 'enable-sidebar-widgets':
                 vars.wizard = 'update-code';
@@ -808,8 +808,8 @@ module.exports = yeoman.generators.Base.extend({
                 this.fs.write(this.destinationPath(vars.appClass + '.php'), appCode);
 
                 if(vars.appType === 'plugin'){
-                    var initCode = this.fs.read(this.templatePath(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp'))
-                        .replace('<?php', '<?php\n' + this._.template(this.templatePath('configs/header-plugin.xphp'), vars));
+                    var initCode = this._.template(this.fs.read(this.templatePath(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp'))
+                        .replace('<?php', '<?php\n' + this.fs.read(this.templatePath('configs/header-plugin.xphp'))), vars);
                     this.fs.write(this.destinationPath(vars.appName + '.wpp.php'), initCode);
                 }else{  // theme or child theme
 
