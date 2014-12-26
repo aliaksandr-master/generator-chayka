@@ -1,3 +1,3 @@
             <div class="form_field <%= fieldClass %> <%= _.underscored(fieldName) %>" data-form-field="<%= fieldName %>">
-                <label class="<%= labelClass %>"><%= fieldLabel %></label><input type="text" data-ng-init="options.<%= fieldName %>=''" data-ng-model="options.<%= fieldName %>" title="<%= fieldLabel %>"/>
+                <label class="<%= labelClass %>"><%= fieldLabel %></label><input type="text" data-ng-init="options.<%= fieldName %>='<%= fieldDefault %>'" data-ng-model="options.<%= fieldName %>" title="<%= fieldLabel %>"/>
             </div>

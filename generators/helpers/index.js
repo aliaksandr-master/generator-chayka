@@ -3,35 +3,23 @@ var yeoman = require('yeoman-generator');
 var chalk = require('chalk');
 var yosay = require('yosay');
 // var shelljs = require('shelljs');
-var fs = require('fs');
+// var fs = require('fs');
+var utils = require('../utils'), util = null;
 // console.log(shelljs);
 // var strings = require('yeoman-generator/underscore.strings');
 module.exports = yeoman.generators.Base.extend({
     initializing: function() {
         this.pkg = require('../../package.json');
-        var g = this;
-
-        this.readJSON = function(file) {
-            var json = g.fs.read(g.destinationPath(file));
-            return JSON.parse(json);
-        };
-
-        this.writeJSON = function(file, json) {
-            g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
-        };
-
-        this.dasherizeName = function(name){
-            return this._.dasherize(name).replace(/^-/, '');   
-        };
+        util = utils(this);
 
         this.Chayka = {
-            options: this.readJSON('chayka.json')
+            options: util.readJSON('chayka.json')
         };
     },
     prompting: function() {
         var done = this.async();
-        var _ = this._;
-        var g = this;
+        // var _ = this._;
+        // var g = this;
         // Have Yeoman greet the user.
         this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
         var prompts = [{
@@ -43,15 +31,16 @@ module.exports = yeoman.generators.Base.extend({
                     {
                         name: 'EmailHelper',
                         value: 'email',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/EmailHelper.php'))
+                        disabled: util.pathExists('app/helpers/EmailHelper.php')
+                        // disabled: fs.existsSync(g.destinationPath('app/helpers/EmailHelper.php'))
                     }, {
                         name: 'NlsHelper',
                         value: 'nls',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/NlsHelper.php'))
+                        disabled: util.pathExists('app/helpers/NlsHelper.php')
                     }, {
                         name: 'OptionHelper',
                         value: 'option',
-                        disabled: fs.existsSync(g.destinationPath('app/helpers/OptionHelper.php'))
+                        disabled: util.pathExists('app/helpers/OptionHelper.php')
                     }, 
                 ];
             },
@@ -65,7 +54,8 @@ module.exports = yeoman.generators.Base.extend({
         }];
 
         this.prompt(prompts, function(props) {
-            _.extend(this.Chayka.options, props);
+            util.extend(this.Chayka.options, props);
+            // _.extend(this.Chayka.options, props);
             this.log(this.Chayka.options);
 
             done();
@@ -77,8 +67,8 @@ module.exports = yeoman.generators.Base.extend({
         },
 
         directories: function() {
-            this.mkdir(this.destinationPath('app'));
-            this.mkdir(this.destinationPath('app/helpers'));
+            util.mkdir('app');
+            util.mkdir('app/helpers');
         },
 
         helpers: function() {
@@ -86,40 +76,40 @@ module.exports = yeoman.generators.Base.extend({
             vars.phpAppClass = vars.appType === 'plugin' ? 'Plugin':'Theme'; 
 
             if(vars.helpers.indexOf('email') >= 0){
-                this.template(
-                    this.templatePath('helpers/EmailHelper.xphp'), 
-                    this.destinationPath('app/helpers/EmailHelper.php'), 
+                util.copy(
+                    'helpers/EmailHelper.xphp', 
+                    'app/helpers/EmailHelper.php', 
                     vars
                 );
 
-                this.mkdir(this.destinationPath('app/views'));
-                this.mkdir(this.destinationPath('app/views/email'));
+                util.mkdir('app/views');
+                util.mkdir('app/views/email');
 
-                this.fs.copy(
-                    this.templatePath('views/email/template.xphtml'), 
-                    this.destinationPath('app/views/email/template.phtml')
+                util.copy(
+                    'views/email/template.xphtml', 
+                    'app/views/email/template.phtml'
                 );
             }
 
             if(vars.helpers.indexOf('nls') >= 0){
-                this.template(
-                    this.templatePath('helpers/NlsHelper.xphp'), 
-                    this.destinationPath('app/helpers/NlsHelper.php'), 
+                util.copy(
+                    'helpers/NlsHelper.xphp', 
+                    'app/helpers/NlsHelper.php', 
                     vars
                 );
 
-                this.mkdir(this.destinationPath('app/nls'));
+                util.mkdir('app/nls');
 
-                this.fs.copy(
-                    this.templatePath('nls/main._.xphp'), 
-                    this.destinationPath('app/nls/main._.php')
+                util.copy(
+                    'nls/main._.xphp', 
+                    'app/nls/main._.php'
                 );
             }
 
             if(vars.helpers.indexOf('option') >= 0){
-                this.template(
-                    this.templatePath('helpers/OptionHelper.xphp'), 
-                    this.destinationPath('app/helpers/OptionHelper.php'), 
+                util.copy(
+                    'helpers/OptionHelper.xphp', 
+                    'app/helpers/OptionHelper.php', 
                     vars
                 );
             }

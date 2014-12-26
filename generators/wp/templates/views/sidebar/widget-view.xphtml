@@ -1,8 +1,0 @@
-<?php 
-    $this->declareVars(array(
-        'height'=>400,
-        'show_faces'=>'true',
-        'header'=>'true',
-    ));
-?>
-<div class="fb-like-box" data-href="https://www.facebook.com/jurcatalog.by" data-width="240" data-height="<?php echo $this->height;?>" data-show-faces="<?php echo $this->show_faces;?>" data-header="<?php echo $this->header;?>" data-stream="false" data-show-border="true"></div>

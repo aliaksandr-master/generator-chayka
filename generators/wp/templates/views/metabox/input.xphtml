@@ -1,7 +1,9 @@
+    <?php /* <%= fieldName %> */
+    	$name = 'metabox-<%= fieldName %>';
+		$value = $this->post->getMeta('<%= fieldName %>');
+    ?>    
     <div class="form_field <%= fieldClass %> <%= _.underscored(fieldName) %>">
         <label  class="<%= labelClass %>"><%= fieldLabel %></label>
-        <span class="input">
-        	<input name="metabox-<%= fieldName %>" type="text" value="<?php echo $this->escape($this->post->getMeta('<%= fieldName %>')); ?>"/>
-    	</span>
+        <span class="input"><?php echo $this->formInput($name, $value, 'text', array());?></span>
         <div class="message"></div>
     </div>

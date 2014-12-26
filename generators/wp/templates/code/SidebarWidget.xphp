@@ -1,0 +1,11 @@
+class <%= sidebarWidgetClassname %> extends SidebarWidget {
+    function __construct() {
+        $id = '<%= sidebarWidgetId %>';
+        $name = '<%= sidebarWidgetTitle %>';
+        $description = '<%= sidebarWidgetDescription %>';
+        parent::__construct($id, $name, $description);
+    }
+}
+
+add_action( 'widgets_init', array('<%= phpNamespace.replace(/\//g, '\\\\') %>\\<%= sidebarWidgetClassname %>', 'registerWidget'));
+

@@ -3,7 +3,7 @@
 <div data-ng-app="chayka-options-form" data-ng-cloak>
     <div data-ng-controller="optionsForm" data-ng-init="namespace = '<%= phpNamespace.replace('//', '.') %>'">
         <form data-form-validator="validator" novalidate="novalidate">
-        <!-- fields -->
+        <!-- chayka: fields -->
         </form>
     </div>
 </div>

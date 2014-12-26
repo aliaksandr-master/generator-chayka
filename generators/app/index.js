@@ -3,7 +3,8 @@ var yeoman = require('yeoman-generator');
 var chalk = require('chalk');
 var yosay = require('yosay');
 var shelljs = require('shelljs');
-var fs = require('fs');
+var utils = require('../utils'), util = null;
+// var fs = require('fs');
 // console.log(shelljs);
 // var strings = require('yeoman-generator/underscore.strings');
 
@@ -47,58 +48,47 @@ module.exports = yeoman.generators.Base.extend({
 
         this.pkg = require('../../package.json');
 
+        util = utils(this);
+
         var g = this;
 
         // g.log(g);
 
-        g.appExists = fs.existsSync(g.destinationPath('Theme.php')) || fs.existsSync(g.destinationPath('Plugin.php'));
+        g.appExists = util.pathExists('Theme.php') || util.pathExists('Plugin.php');
 
         // g.log('appExists: '+g.appExists);
 
         g.Chayka = {
-            options: fs.existsSync(g.destinationPath('chayka.json'))?
-                JSON.parse(g.fs.read(g.destinationPath('chayka.json'))):
+            options: util.pathExists('chayka.json')?
+                util.readJSON('chayka.json'):
                 {}
             };
-
-        this.readTplJSON = function(file, context) {
-            var tpl = g.fs.read(g.templatePath(file));
-            var json = g._.template(tpl, context);
-            return JSON.parse(json);
-        };
-
-        this.readJSON = function(file) {
-            var json = g.fs.read(g.destinationPath(file));
-            return JSON.parse(json);
-        };
-
-        this.writeJSON = function(file, json) {
-            g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
-        };
 
         this.ensureSupport = function(appCode, support){
             var supportCode = '';
             support.forEach(function(sup){
                 if(appCode.indexOf('addSupport_'+sup) === -1){
-                    supportCode += g.fs.read(g.templatePath('code/App.addSupport_'+sup+'.xphp'));
+                    supportCode += util.readTpl('code/App.addSupport_'+sup+'.xphp');
                 }
             });
 
             /* chayka: init/addSupport */
-            return appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*init\/addSupport\s*\*\//, function(match){
-                return (supportCode?'\n'+supportCode:'') + match;
-            });
+            return util.insertAtSlashStarComment('init/addSupport', appCode, supportCode);
+            // return appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*init\/addSupport\s*\*\//, function(match){
+            //     return (supportCode?'\n'+supportCode:'') + match;
+            // });
         };
 
         this.ensureFunctions = function(appCode, functions){
             var functionsCode = '';
             functions.forEach(function(func){
                 if(appCode.indexOf(func) === -1){
-                    functionsCode += g.fs.read(g.templatePath('code/App.'+func+'.xphp'));
+                    functionsCode += util.readTpl('code/App.'+func+'.xphp');
                 }
             });
 
-            return appCode.replace(/\}(?:[^}]*)\s*$/, functionsCode + '}');   
+            return util.insertBeforeClosingBracket(appCode, functionsCode);   
+            // return appCode.replace(/\}(?:[^}]*)\s*$/, functionsCode + '}');   
         };
 
         this.ensureIdeaPhpIncludePath = function(configCode, deps){
@@ -107,16 +97,14 @@ module.exports = yeoman.generators.Base.extend({
                 var depObj = framework[dep];
                 var src = depObj.src || depObj.name;
                 if(configCode.indexOf(src) === -1){
-                    depsCode += g._.template(
-                        g.fs.read(g.templatePath('idea/ideaProject.include.iml')),
-                        {includePath: src}
-                    );
+                    depsCode += util.readTpl('idea/ideaProject.include.iml', {includePath: src});
                 }
             }
 
-            return configCode.replace(/(?:\n)\s*<!--\s*chayka:\s*includePath\s*-->/g, function(match){
-                return '\n'+depsCode + match;
-            });   
+            return util.insertAtHtmlComment('includePath', configCode, depsCode);
+            // return configCode.replace(/(?:\n)\s*<!--\s*chayka:\s*includePath\s*-->/g, function(match){
+            //     return '\n'+depsCode + match;
+            // });   
         };
 
         this.resolveDeps = function(dep, deps){
@@ -139,7 +127,7 @@ module.exports = yeoman.generators.Base.extend({
     },
     prompting: function() {
         var done = this.async();
-        var _ = this._;
+        // var _ = this._;
         var g = this;
         var config = g.Chayka.options;
         // Have Yeoman greet the user.
@@ -150,13 +138,14 @@ module.exports = yeoman.generators.Base.extend({
             choices: [
                 {
                     name: 'Update configs',
-                    value: 'update-configs'
+                    value: 'update-configs',
                 }, {
                     name: 'Update code',
-                    value: 'update-code'
+                    value: 'update-code',
                 }, {
                     name: 'Init .idea',
-                    value: 'init-idea'
+                    value: 'init-idea',
+                    disabled: util.pathExists('.idea'),
                 }, 
             ],
             when: function(){
@@ -179,7 +168,7 @@ module.exports = yeoman.generators.Base.extend({
             default: 'plugin',
             when: function(answers){
                 if(g.appExists){
-                    answers = _.extend(answers, config);
+                    answers = util.extend(answers, config);
                 }
                 return !g.appExists;
             }
@@ -264,9 +253,7 @@ module.exports = yeoman.generators.Base.extend({
                 var vendor = g._slugify(answers.appName.replace(re, ''));
                 return config.packagistVendor || vendor;
             },
-            validate: function(value) {
-                return value ? true : 'Oh common, don\'t be a masked hero!';
-            },            
+            validate: util.checkRequired,            
             when: function(answers){
                 return !g.appExists || answers.wizard === 'update-configs';
             },
@@ -281,7 +268,7 @@ module.exports = yeoman.generators.Base.extend({
                     pck += '-' + answers.parentTheme;
                 }
                 pck += answers.appType === 'plugin' ? '-wpp' : '-wpt';
-                return config.packagistPackage || _.slugify(pck);
+                return config.packagistPackage || util.slugify(pck);
             },
             when: function(answers){
                 return !g.appExists || answers.wizard === 'update-configs';
@@ -291,7 +278,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'PHP namespace for your app',
             default: function(answers) {
                 var re = new RegExp('^' + answers.packagistVendor + '[\\._\\-]?', 'i');
-                return _.classify(answers.packagistVendor) + '\\' + _.classify(answers.appName.replace(re, ''));
+                return util.classify(answers.packagistVendor) + '\\' + util.classify(answers.appName.replace(re, ''));
             },
             when: function(){
                 return !g.appExists;
@@ -491,7 +478,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'Init git repository?',
             type: 'confirm',
             when: function(answers){
-                return !fs.existsSync(g.destinationPath('.git')) && (!g.appExists || answers.wizard === 'update-configs');
+                return !util.pathExists('.git') && (!g.appExists || answers.wizard === 'update-configs');
             }
         }, {
             name: 'gitRemote',
@@ -508,7 +495,7 @@ module.exports = yeoman.generators.Base.extend({
                 value: 'bitbucket'
             }, ],
             when: function(answers) {
-                return (!!answers.gitInit || fs.existsSync(g.destinationPath('.git')) && !config.gitRemote)  && (!g.appExists || answers.wizard === 'update-configs');
+                return (!!answers.gitInit || util.pathExists('.git') && !config.gitRemote)  && (!g.appExists || answers.wizard === 'update-configs');
             }
         }, {
             name: 'githubUser',
@@ -517,9 +504,7 @@ module.exports = yeoman.generators.Base.extend({
             when: function(answers) {
                 return answers.gitRemote === 'github' && (!g.appExists || answers.wizard === 'update-configs');
             },
-            validate: function(value) {
-                return value ? true : 'Oh common, don\'t be a masked hero!';
-            },
+            validate: util.checkRequired,
             default: function(answers) {
                 return answers.packagistVendor || '';
             },
@@ -531,9 +516,7 @@ module.exports = yeoman.generators.Base.extend({
             when: function(answers) {
                 return answers.gitRemote === 'bitbucket' && (!g.appExists || answers.wizard === 'update-configs');
             },
-            validate: function(value) {
-                return value ? true : 'Oh common, don\'t be a masked hero!';
-            },
+            validate: util.checkRequired,
             default: function(answers) {
                 return answers.packagistVendor || '';
             },
@@ -579,7 +562,7 @@ module.exports = yeoman.generators.Base.extend({
                 if(answers.wizard === 'init-idea'){
                     answers.ideaInit = true;
                 }
-                return !fs.existsSync(g.destinationPath('.idea')) && !g.appExists;
+                return !util.pathExists('.idea');
             }
         }, {
             name: 'ideaProject',
@@ -619,9 +602,7 @@ module.exports = yeoman.generators.Base.extend({
         }, {
             name: 'appAuthor',
             message: 'What is your company/author name?',
-            validate: function(value) {
-                return value ? true : 'Oh common, don\'t be a masked hero!';
-            },
+            validate: util.checkRequired,
             default: config.appAuthor || '',
             when: function(answers){
                 return !g.appExists || answers.wizard === 'update-configs';
@@ -630,9 +611,7 @@ module.exports = yeoman.generators.Base.extend({
         }, {
             name: 'appAuthorEmail',
             message: 'What is your email?',
-            validate: function(value) {
-                return value ? true : 'Oh common, don\'t be a masked hero!';
-            },
+            validate: util.checkRequired,
             default: config.appAuthorEmail || '',
             when: function(answers){
                 return !g.appExists || answers.wizard === 'update-configs';
@@ -679,11 +658,6 @@ module.exports = yeoman.generators.Base.extend({
                 vars.support = ['Metaboxes'];
                 vars.register = ['registerMetaBoxes'];
                 break;
-            case 'enable-sidebar-widgets':
-                vars.wizard = 'update-code';
-                vars.support = [];
-                vars.register = [];
-                break;
             default:
                 this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
                 this.prompt(prompts, function(answers) {
@@ -720,38 +694,38 @@ module.exports = yeoman.generators.Base.extend({
             if(!g.appExists){
 
                 // directroies
-                this.mkdir(this.destinationPath('app'));
-                this.mkdir(this.destinationPath('app/controllers'));
-                this.mkdir(this.destinationPath('app/helpers'));
-                this.mkdir(this.destinationPath('app/models'));
-                this.mkdir(this.destinationPath('app/views'));
-                this.mkdir(this.destinationPath('res'));
-                this.mkdir(this.destinationPath('res/lib'));
-                this.mkdir(this.destinationPath('res/dist'));
-                this.mkdir(this.destinationPath('res/src'));
-                this.mkdir(this.destinationPath('res/src/css'));
-                this.mkdir(this.destinationPath('res/src/js'));
-                this.mkdir(this.destinationPath('res/src/img'));
+                util.mkdir('app');
+                util.mkdir('app/controllers');
+                util.mkdir('app/helpers');
+                util.mkdir('app/models');
+                util.mkdir('app/views');
+                util.mkdir('res');
+                util.mkdir('res/lib');
+                util.mkdir('res/dist');
+                util.mkdir('res/src');
+                util.mkdir('res/src/css');
+                util.mkdir('res/src/js');
+                util.mkdir('res/src/img');
 
                 // package.json
                 var vars = this.Chayka.options;
-                var pckg = this.readTplJSON('configs/_package.json', vars);
+                var pckg = util.readTplJSON('configs/_package.json', vars);
                 if (vars.gitRemoteRepo) {
                     pckg.repository = {
                         type: 'git',
                         url: vars.gitRemoteRepo
                     };
                 }
-                this.writeJSON('package.json', pckg);
+                util.writeJSON('package.json', pckg);
 
                 // bower
-                var bower = this.readTplJSON('configs/_bower.json', vars);
+                var bower = util.readTplJSON('configs/_bower.json', vars);
                 bower.keywords = vars.appKeywords.split(/,\s*/);
-                this.writeJSON('bower.json', bower);
-                this.fs.copy(this.templatePath('configs/bowerrc'), this.destinationPath('.bowerrc'));
+                util.writeJSON('bower.json', bower);
+                util.copy('configs/bowerrc', '.bowerrc');
 
                 // composer
-                var composer = this.readTplJSON('configs/_composer.json', vars);
+                var composer = util.readTplJSON('configs/_composer.json', vars);
                 if (vars.appType === 'plugin') {
                     composer.autoload.classmap.push('Plugin.php');
                 } else {
@@ -766,28 +740,28 @@ module.exports = yeoman.generators.Base.extend({
                 // this.log(vars.chaykaFrameworkDeps);
                 // this.log(phpDeps);
                 var depsField = vars.chaykaFramework === 'external' ? 'suggest':'require';
-                this._.extend(composer[depsField], phpDeps);
+                util.extend(composer[depsField], phpDeps);
                 // this.log(composer);
-                this.writeJSON('composer.json', composer);
+                util.writeJSON('composer.json', composer);
 
                 // grunt
-                this.fs.copy(this.templatePath('configs/Gruntfile.js'), this.destinationPath('Gruntfile.js'));
-                this.fs.copy(this.templatePath('configs/jshintrc'), this.destinationPath('.jshintrc'));
-                this.fs.copy(this.templatePath('configs/csslintrc'), this.destinationPath('.csslintrc'));
-                this.fs.copy(this.templatePath('configs/editorconfig'), this.destinationPath('.editorconfig'));
+                util.copy('configs/Gruntfile.js', 'Gruntfile.js');
+                util.copy('configs/jshintrc', '.jshintrc');
+                util.copy('configs/csslintrc', '.csslintrc');
+                util.copy('configs/editorconfig', '.editorconfig');
 
                 // git
-                this.fs.copy(this.templatePath('configs/gitignore'), this.destinationPath('.gitignore'));
-                this.fs.write('README.md', vars.appDescription);
+                util.copy('configs/gitignore', '.gitignore');
+                util.write('README.md', vars.appDescription);
 
                 // chayka.json
                 delete vars.wizard;
-                this.writeJSON('chayka.json', vars);
+                util.writeJSON('chayka.json', vars);
 
                 // Plugin or Theme
                 // this.template(this.templatePath('code/App.xphp'), this.destinationPath(vars.appClass + '.php'), vars);
 
-                var appCode = this._.template(this.fs.read(this.templatePath('code/App.xphp')), vars);
+                var appCode = util.readTpl('code/App.xphp', vars);
 
                 var snippets = [];
                 if(vars.support.indexOf('PostProcessing') > -1){
@@ -805,23 +779,23 @@ module.exports = yeoman.generators.Base.extend({
 
                 // this.log(appCode);
 
-                this.fs.write(this.destinationPath(vars.appClass + '.php'), appCode);
+                util.write(vars.appClass + '.php', appCode);
 
                 if(vars.appType === 'plugin'){
-                    var initCode = this._.template(this.fs.read(this.templatePath(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp'))
-                        .replace('<?php', '<?php\n' + this.fs.read(this.templatePath('configs/header-plugin.xphp'))), vars);
-                    this.fs.write(this.destinationPath(vars.appName + '.wpp.php'), initCode);
+                    var initCode = util.readTpl(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp', vars)
+                        .replace('<?php', '<?php\n' + util.readTpl('configs/header-plugin.xphp', vars));
+                    util.write(vars.appName + '.wpp.php', initCode);
                 }else{  // theme or child theme
 
-                    this.template(
-                        this.templatePath(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp'),
-                        this.destinationPath('functions.php'),
+                    util.copy(
+                        vars.initDep?'code/functions.dep.xphp':'code/functions.xphp',
+                        'functions.php',
                         vars
                     );
 
-                    this.template(
-                        this.templatePath(vars.parentTheme?'configs/header-child-theme.xcss':'configs/header-theme.xcss'),
-                        this.destinationPath('res/src/theme-header.css'),
+                    util.copy(
+                        vars.parentTheme?'configs/header-child-theme.xcss':'configs/header-theme.xcss',
+                        'res/src/theme-header.css',
                         vars
                     );
 
@@ -840,7 +814,7 @@ module.exports = yeoman.generators.Base.extend({
             var vars = this.Chayka.options;
             if(vars.wizard === 'update-configs'){
                 // package.json
-                var pckgUpdate = this.readTplJSON('configs/_package.json', vars);
+                var pckgUpdate = util.readTplJSON('configs/_package.json', vars);
                 if (vars.gitRemoteRepo) {
                     pckgUpdate.repository = {
                         type: 'git',
@@ -848,41 +822,41 @@ module.exports = yeoman.generators.Base.extend({
                     };
                 }
                 pckgUpdate = this._.omit(pckgUpdate, 'dependencies', 'devDependencies');
-                var pckg = this.readJSON('package.json');
-                this._.extend(pckg, pckgUpdate);
-                this.writeJSON('package.json', pckg);
+                var pckg = util.readJSON('package.json');
+                util.extend(pckg, pckgUpdate);
+                util.writeJSON('package.json', pckg);
 
                 // bower
-                var bowerUpdate = this.readTplJSON('configs/_bower.json', vars);
+                var bowerUpdate = util.readTplJSON('configs/_bower.json', vars);
                 bowerUpdate = this._.omit(bowerUpdate, 'dependencies', 'devDependencies', 'keywords', 'ignore');
-                var bower = this.readJSON('bower.json');
+                var bower = util.readJSON('bower.json');
                 bower.keywords = vars.appKeywords.split(/,\s*/);
-                this._.extend(bower, bowerUpdate);
-                this.writeJSON('bower.json', bower);
+                util.extend(bower, bowerUpdate);
+                util.writeJSON('bower.json', bower);
 
                 // composer
-                var composerUpdate = this.readTplJSON('configs/_composer.json', vars);
+                var composerUpdate = util.readTplJSON('configs/_composer.json', vars);
                 composerUpdate = this._.omit(composerUpdate, 'require', 'requireDev', 'suggest', 'autoload');
-                var composer = this.readJSON('composer.json');
-                this._.extend(composer, composerUpdate);
+                var composer = util.readJSON('composer.json');
+                util.extend(composer, composerUpdate);
                 var phpDeps = {};
                 for(var dep in vars.chaykaFrameworkDeps){
                     var phpDep = framework[dep].packagist;
                     phpDeps[phpDep] = 'dev-master';
                 }
                 var depsField = vars.chaykaFramework === 'external' ? 'suggest':'require';
-                this._.extend(composer[depsField], phpDeps);
-                this.writeJSON('composer.json', composer);
+                util.extend(composer[depsField], phpDeps);
+                util.writeJSON('composer.json', composer);
 
                 // app headers
                 if(vars.appType === 'plugin'){
-                    var initCode = this.fs.read(this.destinationPath(vars.appName + '.wpp.php'))
-                        .replace(/^\s*<\?php\s*\/\*\*(\s*\n\s*\*[^\n]*)*\s*\*\//, '<?php\n' + this._.template(this.templatePath('configs/header-plugin.xphp'), vars));
-                    this.fs.write(this.destinationPath(vars.appName + '.wpp.php'), initCode);
+                    var initCode = util.readDst(vars.appName + '.wpp.php')
+                        .replace(/^\s*<\?php\s*\/\*\*(\s*\n\s*\*[^\n]*)*\s*\*\//, '<?php\n' + util.readTpl('configs/header-plugin.xphp', vars));
+                    util.write(vars.appName + '.wpp.php', initCode);
                 }else{  // theme or child theme
-                    this.template(
-                        this.templatePath(vars.parentTheme?'configs/header-child-theme.xcss':'configs/header-theme.xcss'),
-                        this.destinationPath('res/src/theme-header.css'),
+                    util.copy(
+                        vars.parentTheme?'configs/header-child-theme.xcss':'configs/header-theme.xcss',
+                        'res/src/theme-header.css',
                         vars
                     );
                 }
@@ -894,8 +868,8 @@ module.exports = yeoman.generators.Base.extend({
             // var g = this;
             var vars = this.Chayka.options;
             if(vars.wizard === 'update-code'){
-                var appFile = this.destinationPath(vars.appClass + '.php');
-                var appCode = this.fs.read(appFile);
+                var appFile = vars.appClass + '.php';
+                var appCode = util.readDst(appFile);
 
                 var snippets = [];
                 if(vars.support.indexOf('PostProcessing') > -1){
@@ -913,7 +887,7 @@ module.exports = yeoman.generators.Base.extend({
 
                 // this.log(appCode);
 
-                this.fs.write(appFile, appCode);
+                util.write(appFile, appCode);
             }
         },
 
@@ -922,26 +896,26 @@ module.exports = yeoman.generators.Base.extend({
             var vars = this.Chayka.options;
             if(vars.ideaInit){
                 var configCode;
-                var configPath = g.destinationPath('.idea/' + vars.ideaProject + '.iml');
+                var configPath = '.idea/' + vars.ideaProject + '.iml';
                 if(!g.appExists || vars.wizard === 'init-idea'){
                     
-                    configCode = this.fs.read(g.templatePath('idea/ideaProject.iml'));
+                    configCode = util.readTpl('idea/ideaProject.iml');
                     if(vars.chaykaFramework === 'external'){
                         configCode = this.ensureIdeaPhpIncludePath(configCode, vars.chaykaFrameworkDeps);
                     }
-                    this.fs.write(configPath, configCode);
-                    this.mkdir(g.destinationPath('.idea'));
-                    this.template(g.templatePath('idea/.name'), g.destinationPath('.idea/.name'), vars);
-                    this.template(g.templatePath('idea/deployment.xml'), g.destinationPath('.idea/deployment.xml'), vars);
-                    this.template(g.templatePath('idea/modules.xml'), g.destinationPath('.idea/modules.xml'), vars);
-                    this.fs.copy(g.templatePath('idea/php.xml'), g.destinationPath('.idea/php.xml'));
+                    util.write(configPath, configCode);
+                    util.mkdir('.idea');
+                    util.copy('idea/.name', '.idea/.name', vars);
+                    util.copy('idea/deployment.xml', '.idea/deployment.xml', vars);
+                    util.copy('idea/modules.xml', '.idea/modules.xml', vars);
+                    util.copy('idea/php.xml', '.idea/php.xml');
                     if(vars.gitInit){
-                        this.fs.copy(g.templatePath('idea/vcs.xml'), g.destinationPath('.idea/vcs.xml'));
+                        util.copy('idea/vcs.xml', '.idea/vcs.xml');
                     }
                 }else if(vars.wizard === 'update-configs' && vars.chaykaFramework === 'external'){
-                    configCode = this.fs.read(configPath);
+                    configCode = util.readDst(configPath);
                     configCode = this.ensureIdeaPhpIncludePath(configCode, vars.chaykaFrameworkDeps);
-                    this.fs.write(configPath, configCode);
+                    util.write(configPath, configCode);
                 }
             }
         }
@@ -958,12 +932,12 @@ module.exports = yeoman.generators.Base.extend({
             this.spawnCommand('grunt');
         }
 
-        if (this.Chayka.options.gitInit && !fs.existsSync(g.destinationPath('.git'))) {
+        if (this.Chayka.options.gitInit && !util.pathExists('.git')) {
             shelljs.exec('git init');
             shelljs.exec('git add .');
             shelljs.exec('git commit -m "first commit"');
         }
-        if (this.Chayka.options.gitRemoteRepo && fs.existsSync(g.destinationPath('.git/config')) && this.fs.read(g.destinationPath('.git/config')).indexOf(this.Chayka.options.gitRemoteRepo) > -1) {
+        if (this.Chayka.options.gitRemoteRepo && util.pathExists('.git/config') && util.readDst('.git/config').indexOf(this.Chayka.options.gitRemoteRepo) > -1) {
             shelljs.exec('git remote add origin ' + this.Chayka.options.gitRemoteRepo);
             if (this.Chayka.options.gitPush) {
                 shelljs.exec('git push -u origin master');

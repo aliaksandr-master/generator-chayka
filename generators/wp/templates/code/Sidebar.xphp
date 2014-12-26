@@ -1,0 +1,12 @@
+<?php
+
+namespace <%= phpNamespace %>;
+
+use Chayka\WP;
+
+class SidebarWidget extends WP\SidebarWidget {
+
+    public function getView(){
+        return Plugin::getView();
+    }
+}

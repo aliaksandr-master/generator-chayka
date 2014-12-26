@@ -1,0 +1,14 @@
+
+	<?php /* <%= fieldName %> */
+		$id = $this->widget->get_field_id('<%= fieldName %>');
+		$name = $this->widget->get_field_name('<%= fieldName %>');
+		$value = $this-><%= fieldName %>;
+		$options = array(
+			'1' => 'Yes',
+			'0' => 'No',
+		);
+	?>
+	<p>
+		<label for="<?php echo $id; ?>"><%= fieldLabel %></label>
+		<?php echo $this->formSelect($name, $value, $options, array('id' => $id, 'class' => 'widefat')); ?>
+	</p>

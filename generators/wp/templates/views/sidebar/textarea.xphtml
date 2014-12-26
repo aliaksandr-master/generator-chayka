@@ -1,0 +1,10 @@
+
+	<?php /* <%= fieldName %> */
+		$id = $this->widget->get_field_id('<%= fieldName %>');
+		$name = $this->widget->get_field_name('<%= fieldName %>');
+		$value = $this-><%= fieldName %>;
+	?>
+	<p>
+		<label for="<?php echo $id; ?>"><%= fieldLabel %></label>
+		<?php echo $this->formTextarea($name, $value, array('id' => $id, 'class' => 'widefat')); ?>
+	</p>

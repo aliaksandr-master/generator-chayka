@@ -2,37 +2,22 @@
 var yeoman = require('yeoman-generator');
 var chalk = require('chalk');
 var yosay = require('yosay');
+var utils = require('../utils'), util = null;
 // var shelljs = require('shelljs');
-var fs = require('fs');
+// var fs = require('fs');
 // console.log(shelljs);
 // var strings = require('yeoman-generator/underscore.strings');
 module.exports = yeoman.generators.Base.extend({
     initializing: function() {
         this.pkg = require('../../package.json');
-
-        var g = this;
-
-        this.readJSON = function(file) {
-            var json = g.fs.read(g.destinationPath(file));
-            return JSON.parse(json);
-        };
-
-        this.writeJSON = function(file, json) {
-            g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
-        };
-
-        this.dasherizeName = function(name){
-            return this._.dasherize(name).replace(/^-/, '');   
-        };
+        util = utils(this);
 
         this.Chayka = {
-            options: this.readJSON('chayka.json')
+            options: util.readJSON('chayka.json')
         };
     },
     prompting: function() {
         var done = this.async();
-        var _ = this._;
-        var g = this;
         // this.log(_);
         // Have Yeoman greet the user.
         var prompts = [{
@@ -64,7 +49,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'Select controller:',
             type: 'list',
             choices: function(){
-                return fs.readdirSync(g.destinationPath('app/controllers')); 
+                return util.readDirDst('app/controllers'); 
             },
             when: function(answers) {
                 return answers.wizard === 'action';
@@ -109,7 +94,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'DB table name:',
             type: 'input',
             default: function(answers){
-                var table = _.underscored(answers.model.replace(/Model$/, '').replace(/y$/, 'ie') + 's');
+                var table = util.underscored(answers.model.replace(/Model$/, '').replace(/y$/, 'ie') + 's');
                 return table;
             },
             when: function(answers) {
@@ -120,7 +105,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'DB table id column:',
             type: 'input',
             default: function(answers){
-                var table = _.underscored(answers.model.replace(/Model$/, '')) + '_id';
+                var table = util.underscored(answers.model.replace(/Model$/, '')) + '_id';
                 return table;
             },
             when: function(answers) {
@@ -128,13 +113,13 @@ module.exports = yeoman.generators.Base.extend({
             }
         }];
         var vars = this.Chayka.options;
-        if(g.options.externalCall){
-            g._.extend(vars, g.options.externalCall);
+        if(this.options.externalCall){
+            util.extend(vars, this.options.externalCall);
             done();
         }else{
             this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
             this.prompt(prompts, function(props) {
-                _.extend(this.Chayka.options, props);
+                util.extend(this.Chayka.options, props);
                 // this.log(this.Chayka.options);
                 done();
             }.bind(this));
@@ -142,50 +127,57 @@ module.exports = yeoman.generators.Base.extend({
     },
     writing: {
         directories: function() {
-            this.mkdir(this.destinationPath('app'));
-            this.mkdir(this.destinationPath('app/controllers'));
-            this.mkdir(this.destinationPath('app/helpers'));
-            this.mkdir(this.destinationPath('app/models'));
-            this.mkdir(this.destinationPath('app/views'));
+            util.mkdir('app');
+            util.mkdir('app/controllers');
+            util.mkdir('app/helpers');
+            util.mkdir('app/models');
+            util.mkdir('app/views');
         },
 
         controller: function() {
             var vars = this.Chayka.options;
             if(vars.wizard === 'controller'){
-                vars.controller = this._.classify(vars.controller).replace(/Controller$/, '');
-                this.template(
-                    this.templatePath('controllers/Controller.xphp'), 
-                    this.destinationPath('app/controllers/'+vars.controller + 'Controller.php'), 
+                vars.controller = util.classify(vars.controller).replace(/Controller$/, '');
+                util.copy(
+                    'controllers/Controller.xphp', 
+                    'app/controllers/'+vars.controller + 'Controller.php', 
                     vars
                 );
-                this.mkdir(this.destinationPath('app/views/'+this.dasherizeName(vars.controller)));
+                util.mkdir('app/views/'+this.dasherizeName(vars.controller));
             }
         },
 
         action: function() {
             var vars = this.Chayka.options;
             if(vars.wizard === 'action'){
-                vars.action = this._.camelize(vars.action).replace(/Action$/, '');
-                var actionCode = this._.template(this.fs.read(this.templatePath(vars.actionDummy?
-                    (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
-                    'controllers/Action.empty.xphp'
-                )), vars);
-                var controllerCode = this.fs.read(this.destinationPath('app/controllers/' + vars.controllerFile));
+                vars.action = util.camelize(vars.action).replace(/Action$/, '');
+                var actionCode = util.readTpl(
+                    vars.actionDummy?
+                        (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
+                        'controllers/Action.empty.xphp', 
+                    vars);
+                // var actionCode = this._.template(this.fs.read(this.templatePath(vars.actionDummy?
+                //     (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
+                //     'controllers/Action.empty.xphp'
+                // )), vars);
+                var controllerCode = util.readDst('app/controllers/' + vars.controllerFile);
+                // var controllerCode = this.fs.read(this.destinationPath('app/controllers/' + vars.controllerFile));
 
                 if(!controllerCode.match(new RegExp('function\\s+' + vars.action))){
-                   controllerCode = controllerCode.replace(/}\s*$/, actionCode + '\n}');
-                   this.fs.write(this.destinationPath('app/controllers/'+vars.controllerFile), controllerCode);
+                   controllerCode = util.insertBeforeClosingBracket(controllerCode, actionCode);
+                   // controllerCode = controllerCode.replace(/}\s*$/, actionCode + '\n}');
+                   util.write('app/controllers/'+vars.controllerFile, controllerCode);
                 }
 
-                var dashController = this.dasherizeName(vars.controllerFile.replace(/\Controller.php$/, ''));
-                var dashAction = this.dasherizeName(vars.action);
+                var dashController = util.dasherize(vars.controllerFile.replace(/Controller.php$/, ''));
+                var dashAction = util.dasherize(vars.action);
 
-                var viewFile = this.destinationPath('app/views/') + dashController + '/' + dashAction + '.phtml';
+                var viewFile = 'app/views/' + dashController + '/' + dashAction + '.phtml';
 
-                if(vars.actionType === 'view' && !fs.existsSync(viewFile)){
+                if(vars.actionType === 'view' && !util.pathExists(viewFile)){
                     this.log('view:' +viewFile);
-                    this.fs.copy(
-                        this.templatePath('views/view.xphtml'),
+                    util.copy(
+                        'views/view.xphtml',
                         viewFile
                     );         
                 }
@@ -195,16 +187,16 @@ module.exports = yeoman.generators.Base.extend({
         model: function() {
             var vars = this.Chayka.options;
             if(vars.wizard === 'model'){
-                vars.model = this._.classify(vars.model).replace(/Model$/, '');
-                this.template(
-                    this.templatePath('models/Model.xphp'), 
-                    this.destinationPath('app/models/'+vars.model + 'Model.php'), 
+                vars.model = util.classify(vars.model).replace(/Model$/, '');
+                util.copy(
+                    'models/Model.xphp', 
+                    'app/models/'+vars.model + 'Model.php', 
                     vars
                 );
-                this.mkdir(this.destinationPath('app/sql'));
-                this.template(
-                    this.templatePath('sql/model.xsql'), 
-                    this.destinationPath('app/sql/'+vars.dbTable + '.sql'), 
+                util.mkdir('app/sql');
+                util.copy(
+                    'sql/model.xsql', 
+                    'app/sql/'+vars.dbTable + '.sql', 
                     vars
                 );
             }
