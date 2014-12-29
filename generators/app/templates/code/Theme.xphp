@@ -6,6 +6,8 @@ use Chayka\WP;
 
 class Theme extends WP\Theme{
 
+    /* chayka: constants */
+    
     public static $instance;
 
     public static function init(){

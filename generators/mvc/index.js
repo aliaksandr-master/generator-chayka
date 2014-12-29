@@ -143,7 +143,7 @@ module.exports = yeoman.generators.Base.extend({
                     'app/controllers/'+vars.controller + 'Controller.php', 
                     vars
                 );
-                util.mkdir('app/views/'+this.dasherizeName(vars.controller));
+                util.mkdir('app/views/'+util.slugify(vars.controller));
             }
         },
 
@@ -169,8 +169,8 @@ module.exports = yeoman.generators.Base.extend({
                    util.write('app/controllers/'+vars.controllerFile, controllerCode);
                 }
 
-                var dashController = util.dasherize(vars.controllerFile.replace(/Controller.php$/, ''));
-                var dashAction = util.dasherize(vars.action);
+                var dashController = util.slugify(vars.controllerFile.replace(/Controller.php$/, ''));
+                var dashAction = util.slugify(vars.action);
 
                 var viewFile = 'app/views/' + dashController + '/' + dashAction + '.phtml';
 

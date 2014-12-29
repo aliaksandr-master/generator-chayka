@@ -1,2 +1,1 @@
-        $this->addConsolePage('<%= pageTitle %>', 'update_core', '<%= pageSlug %>',
-           '/admin/<%= pageSlug %>');
+        $this->addConsolePage('<%= pageTitle %>', 'update_core', '<%= pageSlug %>', '/admin/<%= pageSlug %>', '<%= pageIconUrl %>', '<%= pageMenuPosition %>');

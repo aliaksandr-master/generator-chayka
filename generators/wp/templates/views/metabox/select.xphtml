@@ -2,8 +2,7 @@
     	$name = 'metabox-<%= fieldName %>';
 		$value = $this->post->getMeta('<%= fieldName %>');
     	$options = array(
-    		'1' => 'Yes',
-    		'0' => 'No',
+            /* chayka: options */
 		);
     ?>
     <div class="form_field <%= fieldClass %> <%= _.underscored(fieldName) %>">

@@ -60,10 +60,10 @@ module.exports = function(g){
 	        g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
 	    },
 
-	    insertAtSlashStarComment: function(marker, containerCode, insertCode){
+	    insertAtSlashStarComment: function(marker, containerCode, insertCode, replace){
 	    	var re = new RegExp('(?:\\n)\\s*\\/\\*\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*\\*\\/', 'g');
 	        return containerCode.replace(re, function(match) {
-	            return (insertCode ? '\n' + insertCode : '') + match;
+	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
 	        });
 	    },
 
@@ -71,19 +71,15 @@ module.exports = function(g){
 	        return containerCode.replace(/\}(?:[^}]*)\s*$/, insertCode + '}');
 	    },
 
-	    insertAtHtmlComment: function(marker, containerCode, insertCode){
+	    insertAtHtmlComment: function(marker, containerCode, insertCode, replace){
 	    	var re = new RegExp('(?:\\n)\\s*<!--\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*-->', 'g');
 	        return containerCode.replace(re, function(match) {
-	            return (insertCode ? '\n' + insertCode : '') + match;
+	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
 	        });
 	    },
 
-	    checkRequired: function(value){
-	        return !!value || 'This field is required';
-	    },
-
 	    dasherize: function(name){
-	        return g._.dasherize(name).replace(/^-/, '');   
+	        return g._.dasherize(name);   
 	    },
 
 	    slugify: function(name){
@@ -102,13 +98,101 @@ module.exports = function(g){
 	        return g._.underscored(name);   
 	    },
 
+	    humanize: function(name){
+	        return g._.humanize(name);   
+	    },
+
+	    plural: function(name){
+	    	return name.replace(/y$/, 'ie') + 's';
+	    },
+
+	    singular: function(){
+	    	return name.replace(/s$/, '').replace(/ie/, 'y');
+	    },
+
 	    template: function(tpl, context){
 	    	return g._.template(tpl, context);
 	    },
 
+	    strToArray: function(str){
+	    	return str.split(/,\s+/);
+	    },
+
 	    extend: function(){
 	    	return g._.extend.apply(g._, arguments);
-	    }
+	    },
+
+	    checkRequired: function(value){
+	        return !!value || 'This field is required';
+	    },
+
+        promptPair: function(invitaitonMsg, keyMsg, valueMsg, defaultValue, done){
+            var pairPrompts = [
+                {
+                    name: 'confirm',
+                    type: 'confirm',
+                    message: invitaitonMsg||' ',
+                    when: function(){
+                    	return !!invitaitonMsg;
+                    }
+                },
+                {
+                    name: 'key',
+                    message: keyMsg,
+                    when: function (answers) {
+                    	return !invitaitonMsg || answers.confirm;
+                    }
+                },
+                {
+                    name: 'value',
+                    message: valueMsg,
+                    when: function (answers) {
+                    	return (!invitaitonMsg || answers.confirm) && answers.key;
+                    },
+                    default: function(answers){
+                    	var value = '';
+                    	switch(defaultValue){
+                    		case 'dasherize':
+                    			value = utils.dasherize(answers.key);
+                    			break;
+                    		case 'slugify':
+                    			value = utils.slugify(answers.key);
+                    			break;
+                    		case 'classify':
+                    			value = utils.classify(answers.key);
+                    			break;
+                    		case 'camelize':
+                    			value = utils.camelize(answers.key);
+                    			break;
+                    		case 'underscored':
+                    			value = utils.underscored(answers.key);
+                    			break;
+                    		case 'humanize':
+                    			value = utils.humanize(answers.key);
+                    			break;
+                    	}
+                        return value;
+                    },
+                },
+            ];
+
+            g.prompt(pairPrompts, done);
+        },
+
+        promptPairs: function(invitaitonMsg, keyMsg, valueMsg, defaultValue, done){
+            var pairs = {};
+            var pairReady = function(pair){
+                if(pair.key){
+                    pairs[pair.key] = pair.value;
+                    utils.promptPair(false, keyMsg, valueMsg, defaultValue, pairReady);
+                }else{
+                    done(pairs);
+                }
+            };
+
+            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, defaultValue, pairReady);
+        },
+
 	};
 
 	return utils;

@@ -4,8 +4,7 @@
 		$name = $this->widget->get_field_name('<%= fieldName %>');
 		$value = $this-><%= fieldName %>;
 		$options = array(
-			'1' => 'Yes',
-			'0' => 'No',
+			/* chayka: options */
 		);
 	?>
 	<p>
