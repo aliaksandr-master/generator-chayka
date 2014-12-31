@@ -41,7 +41,7 @@ module.exports = yeoman.generators.Base.extend({
                     message: 'Field name:',
                     validate: util.checkRequired,
                     default: function(answers){
-                        return g._.camelize(answers.fieldLabel.toLowerCase());
+                        return util.camelize(answers.fieldLabel.toLowerCase());
                     },
                     when: function(answers){
                         return !!answers.fieldType;
@@ -99,15 +99,13 @@ module.exports = yeoman.generators.Base.extend({
                     case 'input':
                         fieldCode = util.readTpl('views/' + mode + '/input.xphtml', answers);
                         callback(fieldCode, answers);
-                        // fieldCode = g._.template(g.fs.read(g.templatePath('views/' + mode + '/input.xphtml')), answers);
                         break;
                     case 'textarea':
                         fieldCode = util.readTpl('views/' + mode + '/textarea.xphtml', answers);
                         callback(fieldCode, answers);
-                        // fieldCode = g._.template(g.fs.read(g.templatePath('views/' + mode + '/textarea.xphtml')), answers);
                         break;
                     case 'select':
-                        util.promptPairs('Generate options?', 'Option label:', 'Option value:', 'slugify', function(pairs){
+                        util.promptPairs('Generate options?', 'Option label:', 'Option value:', null, 'slugify', function(pairs){
                             answers.fieldOptions = g._.invert(pairs);
                             fieldCode = util.readTpl('views/' + mode + '/select.xphtml', answers);
                             
@@ -123,7 +121,6 @@ module.exports = yeoman.generators.Base.extend({
 
                             callback(fieldCode, answers);
                         });
-                        // fieldCode = g._.template(g.fs.read(g.templatePath('views/' + mode + '/select.xphtml')), answers);
                         break;
                     default:
                         callback(fieldCode, answers);
@@ -235,7 +232,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'pageSlug',
             message: 'Console Page Slug',
             default: function(answers){
-                return g._.slugify(answers.pageTitle);
+                return util.slugify(answers.pageTitle);
             },
             when: function(answers) {
                 return answers.mechanism === 'console-page';
@@ -293,7 +290,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'metaboxSlug',
             message: 'Metabox Slug',
             default: function(answers){
-                return g._.slugify(answers.metaboxTitle);
+                return util.slugify(answers.metaboxTitle);
             },
             when: function(answers) {
                 return answers.mechanism === 'metabox';
@@ -333,7 +330,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'sidebarWidgetId',
             message: 'Sidebar Widget ID',
             default: function(answers){
-                return g._.slugify(answers.sidebarWidgetTitle);
+                return util.slugify(answers.sidebarWidgetTitle);
             },
             when: function(answers) {
                 return answers.mechanism === 'sidebar-widget';
@@ -342,7 +339,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'sidebarWidgetClassname',
             message: 'Sidebar Widget Classname:',
             default: function(answers){
-                return g._.classify(answers.sidebarWidgetTitle) + 'Widget';
+                return util.classify(answers.sidebarWidgetTitle) + 'Widget';
             },
             when: function(answers) {
                 return answers.mechanism === 'sidebar-widget';
@@ -373,7 +370,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'Auto-generate labels?',
             type: 'confirm',
             default: function(answers){
-                answers.singularName = util.humanize(answers.postType);
+                answers.singularName = util.capitilize(util.humanize(answers.postType));
                 answers.pluralName = util.plural(answers.singularName);
                 answers.menuName = answers.pluralName;
                 answers.nameAdminBar = answers.singularName;
@@ -394,20 +391,20 @@ module.exports = yeoman.generators.Base.extend({
             }
         },
         {
-            name: 'singularName',
-            message: chalk.green('singular_name') + chalk.reset(' - name for one object of this post type:\n'),
+            name: 'pluralName',
+            message: chalk.green('name') + chalk.reset(' - general name for the post type, usually plural:\n'),
             default: function(answers){
-                return answers.singularName;
+                return util.capitilize(util.humanize(util.plural(answers.postType)));
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
             }
         },
         {
-            name: 'pluralName',
-            message: 'plural '+ chalk.green('name') + chalk.reset(' - general name for the post type, usually plural:\n'),
+            name: 'singularName',
+            message: chalk.green('singular_name') + chalk.reset(' - name for one object of this post type:\n'),
             default: function(answers){
-                return answers.pluralName;
+                return util.capitilize(util.humanize(util.singular(answers.pluralName)));
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -417,7 +414,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'menuName',
             message: chalk.green('menu_name') + chalk.reset(' - the menu name text. This string is the name to give menu items:\n'),
             default: function(answers){
-                return answers.menuName;
+                return answers.pluralName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -427,7 +424,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'nameAdminBar',
             message: chalk.green('name_admin_bar') + chalk.reset(' - name given for the "Add New" dropdown on admin bar:\n'),
             default: function(answers){
-                return answers.nameAdminBar;
+                return answers.singularName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -437,7 +434,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'allItems',
             message: chalk.green('all_items') + chalk.reset(' - the all items text used in the menu:\n'),
             default: function(answers){
-                return answers.allItems;
+                return answers.pluralName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -446,8 +443,8 @@ module.exports = yeoman.generators.Base.extend({
         {
             name: 'addNew',
             message: chalk.green('add_new') + chalk.reset(' - the add new text:\n'),
-            default: function(answers){
-                return answers.addNew;
+            default: function(){
+                return 'Add New';
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -457,7 +454,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'addNewItem',
             message: chalk.green('add_new_item') + chalk.reset(' - the add new item text:\n'),
             default: function(answers){
-                return answers.addNewItem;
+                return answers.addNew + ' ' + answers.singularName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -467,7 +464,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'editItem',
             message: chalk.green('edit_item') + chalk.reset(' - the edit item text. In the UI, this label is used as the main header on the post\'s editing panel:\n'),
             default: function(answers){
-                return answers.editItem;
+                return 'Edit ' + answers.singularName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -477,7 +474,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'newItem',
             message: chalk.green('new_item') + chalk.reset(' - the new item text:\n'),
             default: function(answers){
-                return answers.newItem;
+                return 'New ' + answers.singularName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -487,7 +484,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'viewItem',
             message: chalk.green('view_item') + chalk.reset(' - the view item text:\n'),
             default: function(answers){
-                return answers.viewItem;
+                return 'View ' + answers.singularName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -497,7 +494,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'searchItems',
             message: chalk.green('search_items') + chalk.reset(' - the search items text:\n'),
             default: function(answers){
-                return answers.searchItems;
+                return 'Search ' + answers.pluralName;
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -507,7 +504,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'notFound',
             message: chalk.green('not_found') + chalk.reset(' - the not found text:\n'),
             default: function(answers){
-                return answers.notFound;
+                return 'No ' + answers.pluralName.toLowerCase() + ' found';
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -517,7 +514,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'notFoundInTrash',
             message: chalk.green('not_found_in_trash') + chalk.reset(' - the not found in trash text:\n'),
             default: function(answers){
-                return answers.notFoundInTrash;
+                return 'No ' + answers.pluralName.toLowerCase() + ' found in Trash';
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !answers.labels;
@@ -525,7 +522,7 @@ module.exports = yeoman.generators.Base.extend({
         },
         {
             name: 'parentItemColon',
-            message: chalk.green('parent_item_colon') + chalk.reset(' - the parent text:\n'),
+            message: chalk.green('parent_item_colon') + chalk.reset(' - the parent item text (without colon, please):\n'),
             default: function(answers){
                 return 'Parent ' + answers.singularName;
             },
@@ -619,17 +616,6 @@ module.exports = yeoman.generators.Base.extend({
             }
         },
         {
-            name: 'showInAdminBar',
-            message: chalk.green('show_in_admin_bar') + chalk.reset(' - Whether to make this post type available in the WordPress admin bar:\n'),
-            type: 'confirm',
-            default: function(answers){
-                return !!answers.showInMenu;
-            },
-            when: function(answers) {
-                return answers.mechanism === 'post-type';
-            }
-        },
-        {
             name: 'menuPosition',
             message: chalk.green('menu_position') + chalk.reset(' - The position in the menu order the post type should appear:\n'),
             type: 'list',
@@ -662,6 +648,17 @@ module.exports = yeoman.generators.Base.extend({
             },
             when: function(answers) {
                 return answers.mechanism === 'post-type' && !!answers.showInMenu;
+            }
+        },
+        {
+            name: 'showInAdminBar',
+            message: chalk.green('show_in_admin_bar') + chalk.reset(' - Whether to make this post type available in the WordPress admin bar:\n'),
+            type: 'confirm',
+            default: function(answers){
+                return !!answers.showInMenu;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'post-type';
             }
         },
         {
@@ -763,6 +760,360 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.mechanism === 'post-type';
             }
         },
+            /* Custom Taxonomies */
+        {
+            name: 'taxonomy',
+            message: 'The name of the taxonomy. ' + chalk.reset.gray('Name should only contain lowercase letters and the underscore character, and not be more than 32 characters long (database structure restriction).') + ':\n',
+            filter: function(value){
+                return util.underscored(value);
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'objectType',
+            message: 'Name of the object type for the taxonomy object. ' + chalk.reset.gray('Object-types can be built-in Post Type or any Custom Post Type that may be registered.') + ':\n',
+            type: 'checkbox',
+            choices: function(){
+                return [
+                    {name: 'post', value: '\'post\''},
+                    {name: 'page', value: '\'page\''},
+                    {name: 'attachment', value: '\'attachment\''},
+                    {name: 'revision', value: '\'revision\''},
+                    {name: 'nav_menu_item', value: '\'nav_menu_item\''},
+                ];
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'hierarchical',
+            message: chalk.green('hierarchical') + chalk.reset(' - Is this taxonomy hierarchical (have descendants) like categories or not hierarchical like tags:\n'),
+            type: 'list',
+            choices: [
+                {value: false, name: chalk.green('not hierarchical') + ' like tags'},
+                {value: true, name: chalk.green('hierarchical') + ' like categories (have descendants)'},
+            ],
+            default: function(){
+                return false;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'labels',
+            message: 'Auto-generate labels?',
+            type: 'confirm',
+            default: function(answers){
+                answers.singularName = util.capitalize(util.humanize(answers.taxonomy));
+                answers.pluralName = util.plural(answers.singularName);
+                answers.menuName = answers.pluralName;
+                answers.allItems = 'All ' + answers.pluralName;
+                answers.editItem = 'Edit ' + answers.singularName;
+                answers.viewItem = 'View ' + answers.singularName;
+                answers.updateItem = 'Update ' + answers.singularName;
+                answers.addNewItem = 'Add New ' + answers.singularName;
+                answers.newItemName = 'New ' + answers.singularName + ' Name';
+                answers.parentItem = 'Parent ' + answers.singularName;
+                answers.searchItems = 'Search ' + answers.pluralName;
+                answers.popularItems = 'Popular ' + answers.pluralName;
+                answers.separateItemsWithCommas = 'Separate ' + answers.pluralName.toLowerCase() + ' with commas';
+                answers.addOrRemoveItems = 'Add or remove ' + answers.pluralName.toLowerCase();
+                answers.chooseFromMostUsed = 'Choose from the most used ' + answers.pluralName.toLowerCase();
+                answers.notFound = 'No ' + answers.pluralName.toLowerCase() + ' found.';
+                return true;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'pluralName',
+            message: chalk.green('name') + chalk.reset(' - general name for the taxonomy, usually plural:\n'),
+            default: function(answers){
+                return util.capitalize(util.humanize(util.plural(answers.taxonomy)));
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'singularName',
+            message: chalk.green('singular_name') + chalk.reset(' - name for one object of this taxonomy:\n'),
+            default: function(answers){
+                return util.capitalize(util.humanize(util.singular(answers.pluralName)));
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'menuName',
+            message: chalk.green('menu_name') + chalk.reset(' - the menu name text. This string is the name to give menu items:\n'),
+            default: function(answers){
+                return answers.pluralName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'allItems',
+            message: chalk.green('all_items') + chalk.reset(' - the all items text:\n'),
+            default: function(answers){
+                return 'All ' + answers.pluralName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'editItem',
+            message: chalk.green('edit_item') + chalk.reset(' - the edit item text:\n'),
+            default: function(answers){
+                return 'Edit ' + answers.singularName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'viewItem',
+            message: chalk.green('view_item') + chalk.reset(' - the view item text:\n'),
+            default: function(answers){
+                return 'View ' + answers.singularName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'updateItem',
+            message: chalk.green('update_item') + chalk.reset(' - the update item text:\n'),
+            default: function(answers){
+                return 'Update ' + answers.singularName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'addNewItem',
+            message: chalk.green('add_new_item') + chalk.reset(' - the add new item text:\n'),
+            default: function(answers){
+                return 'Add New ' + answers.singularName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'newItemName',
+            message: chalk.green('new_item_name') + chalk.reset(' - the new item name text:\n'),
+            default: function(answers){
+                return 'New ' + answers.singularName + ' Name';
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'parentItem',
+            message: chalk.green('parent_item') + chalk.reset(' - the parent item text. This string is not used on non-hierarchical taxonomies such as post tags:\n'),
+            default: function(answers){
+                return 'Parent ' + answers.singularName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !!answers.hierarchical;
+            }
+        },
+        {
+            name: 'searchItems',
+            message: chalk.green('search_items') + chalk.reset(' - the search items text:\n'),
+            default: function(answers){
+                return 'Search ' + answers.pluralName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels;
+            }
+        },
+        {
+            name: 'popularItems',
+            message: chalk.green('popular_items') + chalk.reset(' - the popular items text. This string is not used on hierarchical taxonomies:\n'),
+            default: function(answers){
+                return 'Popular ' + answers.pluralName;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !answers.hierarchical;
+            }
+        },
+        {
+            name: 'separateItemsWithCommas',
+            message: chalk.green('separate_items_with_commas') + chalk.reset(' - the separate item with commas text used in the taxonomy meta box. This string is not used on hierarchical taxonomies:\n'),
+            default: function(answers){
+                return 'Separate ' + answers.pluralName.toLowerCase() + ' with commas';
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !answers.hierarchical;
+            }
+        },
+        {
+            name: 'addOrRemoveItems',
+            message: chalk.green('add_or_remove_items') + chalk.reset(' - the add or remove items text and used in the meta box when JavaScript is disabled. This string is not used on hierarchical taxonomies:\n'),
+            default: function(answers){
+                return 'Add or remove ' + answers.pluralName.toLowerCase();
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !answers.hierarchical;
+            }
+        },
+        {
+            name: 'chooseFromMostUsed',
+            message: chalk.green('choose_from_most_used') + chalk.reset(' - the choose from most used text used in the taxonomy meta box. This string is not used on hierarchical taxonomies:\n'),
+            default: function(answers){
+                return 'Choose from the most used ' + answers.pluralName.toLowerCase();
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !answers.hierarchical;
+            }
+        },
+        {
+            name: 'notFound',
+            message: chalk.green('not_found') + chalk.reset(' - the text displayed via clicking \'Choose from the most used tags\' in the taxonomy meta box when no tags are available. This string is not used on hierarchical taxonomies:\n'),
+            default: function(answers){
+                return 'No ' + answers.pluralName.toLowerCase() + ' found.';
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && !answers.labels && !answers.hierarchical;
+            }
+        },
+        {
+            name: 'public',
+            message: chalk.green('public') + chalk.reset(' - If the taxonomy should be publicly queryable:\n'),
+            type: 'confirm',
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'showUi',
+            message: chalk.green('show_ui') + chalk.reset(' - Whether to generate a default UI for managing this taxonomy. As of 3.5, setting this to false for attachment taxonomies will hide the UI:\n'),
+            type: 'confirm',
+            default: function(answers){
+                return !!answers.public;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'showInNavMenus',
+            message: chalk.green('show_in_nav_menus') + chalk.reset(' - true makes this taxonomy available for selection in navigation menus:\n'),
+            type: 'confirm',
+            default: function(answers){
+                return !!answers.public;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'showTagcloud',
+            message: chalk.green('show_tagcloud') + chalk.reset(' - Whether to allow the Tag Cloud widget to use this taxonomy:\n'),
+            type: 'confirm',
+            default: function(answers){
+                return !!answers.showUi;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'metaBoxCb',
+            message: chalk.green('meta_box_cb') + chalk.reset(' - Whether show default metabox or not:\n'),
+            type: 'list',
+            choices: function(answers){
+                return [
+                    {'name': 'Show default taxonomy metabox', 'value': answers.hierarchical?
+                        'post_categories_meta_box' : 'post_tags_meta_box'},
+                    {'name': 'Hide default taxonomy metabox', 'value': false},
+                ];
+            },
+            default: function(){
+                return 0;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'showAdminColumn',
+            message: chalk.green('show_admin_column') + chalk.reset(' - Whether to allow automatic creation of taxonomy columns on associated post-types table:\n'),
+            type: 'confirm',
+            default: function(){
+                return false;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'updateCountCallback',
+            message: chalk.green('update_count_callback') + chalk.reset(' - (optional) A function name that will be called when the count of an associated $object_type, such as post, is updated. Works much like a hook:\n'),
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'queryVar',
+            message: chalk.green('query_var') + chalk.reset(' - False to disable the query_var, set as string to use custom query_var instead of default which is $taxonomy, the taxonomy\'s "name":\n'),
+            type: 'list',
+            choices: function(answers){
+                return [
+                    {'name': 'Default', 'value': answers.taxonomy},
+                    {'name': 'None', 'value': false},
+                    {'name': 'Custom', 'value': 'custom'},
+                ];
+            },
+            default: function(){
+                return 0;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'queryVar',
+            message: chalk.green('query_var') + chalk.reset(' - Set custom query_var instead of default which is $taxonomy, the taxonomy\'s "name":\n'),
+            default: function(answers){
+                return answers.taxonomy;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy' && answers.queryVar === 'custom';
+            }
+        },
+        {
+            name: 'rewrite',
+            message: chalk.green('rewrite') + chalk.reset(' - Set to false to prevent automatic URL rewriting a.k.a. "pretty permalinks":\n'),
+            type: 'confirm',
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
+        {
+            name: 'sort',
+            message: chalk.green('sort') + chalk.reset(' - Whether this taxonomy should remember the order in which terms are added to objects:\n'),
+            type: 'confirm',
+            default: function(){
+                return false;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'taxonomy';
+            }
+        },
         ];
 
         this.prompt(prompts, function(answers) {
@@ -810,47 +1161,42 @@ module.exports = yeoman.generators.Base.extend({
             var vars = this.Chayka.options;
             // var g = this;
             if(vars.mechanism === 'console-page'){
-                this.composeWith('chayka', 
-                    {
-                        options: {
-                            'externalCall': 'enable-console-pages',
-                        }
-                    }
-                );
-                var appPageCode = util.readTpl(vars.pageParent?
+                var addPageCode = util.readTpl(vars.pageParent?
                     'code/addConsoleSubPage.xphp':
                     'code/addConsolePage.xphp', vars);
-                // var addPageCode = g._.template(g.fs.read(g.templatePath(vars.pageParent?
-                //     'code/addConsoleSubPage.xphp':
-                //     'code/addConsolePage.xphp')), vars);
+
                 var appFile = vars.appType === 'plugin'?'Plugin.php':'Theme.php';
-                // var appFile = g.destinationPath(vars.appType === 'plugin'?'Plugin.php':'Theme.php');
+
                 var appCode = util.readDst(appFile);
-                // var appCode = g.fs.read(appFile);
 
-                /* chayka: registerConsolePages */
-                appCode = util.insertAtSlashStarComment('registerConsolePages', appCode, appPageCode);
-                // appCode = appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*registerConsolePages\s*\*\//, function(match){
-                //     return '\n' + addPageCode + match;
-                // });
-
-                util.write(appFile, appCode);
-                // g.fs.write(appFile, appCode);
-
+                if(appCode.indexOf('registerConsolePages') > -1 ){
+                    /* chayka: registerConsolePages */
+                    appCode = util.insertAtSlashStarComment('registerConsolePages', appCode, addPageCode);
+                    util.write(appFile, appCode);
+                }else{
+                    this.composeWith('chayka', 
+                        {
+                            options: {
+                                'externalCall': 'enable-console-pages',
+                                'externalEmbeddings': [{
+                                    'file': appFile,
+                                    'marker': 'registerConsolePages',
+                                    'mode': 'curly',
+                                    'insert': addPageCode,
+                                }],
+                            }
+                        }
+                    );
+                }
 
                 // controller
                 util.mkdir('app/controllers');
-                // this.mkdir(this.destinationPath('app/controllers'));
 
                 var controllerFile = 'app/controllers/AdminController.php';
-                // var controllerFile = g.destinationPath('app/controllers/AdminController.php');
 
                 if(!util.pathExists(controllerFile)){
                     util.copy('controllers/AdminController.xphp', controllerFile, vars);
                 }
-                // if(!fs.existsSync(controllerFile)){
-                //     this.template(g.templatePath('controllers/AdminController.xphp'), controllerFile, vars);
-                // }
 
                 // action
                 this.composeWith('chayka:mvc', 
@@ -869,66 +1215,53 @@ module.exports = yeoman.generators.Base.extend({
 
                 // view
                 var viewFile = 'app/views/admin/' + vars.pageSlug + '.phtml';
-                // var viewFile = g.destinationPath('app/views/admin/' + vars.pageSlug + '.phtml');
                 var viewCode = util.pathExists(viewFile)?
                     util.readDst(viewFile):
                     util.readTpl('views/admin/index.xphtml', vars);
-                // var viewCode = fs.existsSync(viewFile)?
-                //     g.fs.read(viewFile):
-                //     g._.template(g.fs.read(g.templatePath('views/admin/index.xphtml')), vars);
 
                 viewCode = util.insertAtHtmlComment('fields', viewCode, vars.fieldsCode);
-                // viewCode = viewCode.replace(/(?:\n)\s*<!--\s*fields\s*-->/g, function(match){
-                //     return '\n'+vars.fieldsCode + match;
-                // });
                 util.write(viewFile, viewCode);
-                // g.fs.write(viewFile, viewCode);
             }
         },
 
         metabox: function() {
             var vars = this.Chayka.options;
             if(vars.mechanism === 'metabox'){
-                this.composeWith('chayka', 
-                    {
-                        options: {
-                            'externalCall': 'enable-metaboxes',
-                        }
-                    }
-                );
                 vars.metaboxScreens = vars.metaboxPostTypes?
                     'array("' + vars.metaboxPostTypes.split(/[\s,]+/).join('", "') + '")':
                     'null';
                 var addMetaboxCode = util.readTpl('code/addMetaBox.xphp', vars);
                 var appFile = vars.appType === 'plugin'?'Plugin.php':'Theme.php';
                 var appCode = util.readDst(appFile);
-                // var addMetaboxCode = g._.template(g.fs.read(g.templatePath('code/addMetaBox.xphp')), vars);
-                // var appFile = g.destinationPath(vars.appType === 'plugin'?'Plugin.php':'Theme.php');
-                // var appCode = g.fs.read(appFile);
 
-                /* chayka: registerMetaBoxes */
-                appCode = util.insertAtSlashStarComment('registerMetaBoxes', appCode, addMetaboxCode);
-                // appCode = appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*registerMetaBoxes\s*\*\//, function(match){
-                //     return '\n' + addMetaboxCode + match;
-                // });
-
-                util.write(appFile, appCode);
-                // g.fs.write(appFile, appCode);
-
+                if(appCode.indexOf('registerMetaBoxes') > -1){
+                    /* chayka: registerMetaBoxes */
+                    appCode = util.insertAtSlashStarComment('registerMetaBoxes', appCode, addMetaboxCode);
+                    util.write(appFile, appCode);
+                }else{
+                    this.composeWith('chayka', 
+                        {
+                            options: {
+                                'externalCall': 'enable-metaboxes',
+                                'externalEmbeddings': [{
+                                    'file': appFile,
+                                    'marker': 'registerMetaBoxes',
+                                    'mode': 'curly',
+                                    'insert': addMetaboxCode,
+                                }],
+                            }
+                        }
+                    );
+                }
 
                 // controller
                 util.mkdir('app/controllers');
-                // this.mkdir(this.destinationPath('app/controllers'));
 
                 var controllerFile = 'app/controllers/MetaboxController.php';
-                // var controllerFile = g.destinationPath('app/controllers/MetaboxController.php');
 
                 if(!util.pathExists(controllerFile)){
                     util.copy('controllers/MetaboxController.xphp', controllerFile, vars);
                 }
-                // if(!fs.existsSync(controllerFile)){
-                //     this.template(g.templatePath('controllers/MetaboxController.xphp'), controllerFile, vars);
-                // }
 
                 // action
                 this.composeWith('chayka:mvc', 
@@ -953,15 +1286,6 @@ module.exports = yeoman.generators.Base.extend({
 
                 viewCode = util.insertAtHtmlComment('fields', viewCode, vars.fieldsCode);
                 utils.write(viewFile, viewCode);
-                // var viewFile = g.destinationPath('app/views/metabox/' + vars.metaboxSlug + '.phtml');
-                // var viewCode = fs.existsSync(viewFile)?
-                //     g.fs.read(viewFile):
-                //     g._.template(g.fs.read(g.templatePath('views/metabox/index.xphtml')), vars);
-
-                // viewCode = viewCode.replace(/(?:\n)\s*<!--\s*fields\s*-->/g, function(match){
-                //     return '\n'+vars.fieldsCode + match;
-                // });
-                // g.fs.write(viewFile, viewCode);
             }
         },
 
@@ -980,21 +1304,9 @@ module.exports = yeoman.generators.Base.extend({
                     }
                 }
                 util.write(functionsFile, functionsCode);
-                // var functionsFile = g.destinationPath( vars.appType === 'plugin' ? vars.appName + '.wpp.php':'functions.php');
-                // var functionsCode = g.fs.read(functionsFile);
-                // var requireCode = g.fs.read(g.templatePath('code/requireSidebar.xphp'));
-                // if(functionsCode.indexOf('Sidebar.php') === -1){ // check if require Sidebar.php already exists
-                //     if(vars.initDep){
-                //         functionsCode = functionsCode.replace(/}\s*$/, requireCode + '\n}');
-                //     }else{
-                //         functionsCode += requireCode.trim() + '\n';
-                //     }
-                // }
-                // g.fs.write(functionsFile, functionsCode);
 
                 // 2. add SidbarWidget
                 var widgetClassCode = util.readTpl('code/SidebarWidget.xphp', vars);
-                // var widgetClassCode = g._.template(g.fs.read(g.templatePath('code/SidebarWidget.xphp')), vars);
 
                 // 3. ensure Sidebar.php
                 var sidebarFile = 'Sidebar.php';
@@ -1008,25 +1320,11 @@ module.exports = yeoman.generators.Base.extend({
                 sidebarCode += widgetClassCode;
 
                 util.write(sidebarFile, sidebarCode);
-                // var sidebarFile = g.destinationPath('Sidebar.php');
-                // var sidebarCode = '';
-                // if(fs.existsSync(sidebarFile)){
-                //     sidebarCode = g.fs.read(sidebarFile);
-                // }else{
-                //     sidebarCode = g._.template(g.fs.read(g.templatePath('code/Sidebar.xphp')), vars);
-                // }
-
-                // sidebarCode += widgetClassCode;
-
-                // g.fs.write(sidebarFile, sidebarCode);
 
                 // 4. ensure views dir
                 util.mkdir('app/views');
                 util.mkdir('app/views/sidebar');
                 util.mkdir('app/views/sidebar/' + vars.sidebarWidgetId);
-                // g.mkdir(g.destinationPath('app/views'));
-                // g.mkdir(g.destinationPath('app/views/sidebar'));
-                // g.mkdir(g.destinationPath('app/views/sidebar/' + vars.sidebarWidgetId));
 
                 // 5. declare view vars
                 var declareCode = '';
@@ -1034,34 +1332,123 @@ module.exports = yeoman.generators.Base.extend({
                 vars.fields.forEach(function(field){
                     declareCode += util.template(declareTpl, field);
                 });
-                // var declareTpl = g.fs.read(g.templatePath('views/sidebar/declareVars.xphtml'));
-                // vars.fields.forEach(function(field){
-                //     declareCode += g._.template(declareTpl, field);
-                // });
 
                 // 6. add form
                 var formCode = util.readTpl('views/sidebar/form.xphtml');
-                // var formCode = g.fs.read(g.templatePath('views/sidebar/form.xphtml'));
                 formCode = util.insertAtHtmlComment('fields', formCode, vars.fieldsCode);
                 formCode = util.insertAtSlashStarComment('declareVars', formCode, declareCode);
-                // formCode = formCode.replace(/(?:\n)\s*<!--\s*fields\s*-->/g, function(match){
-                //     return '\n'+vars.fieldsCode + match;
-                // }).replace(/(?:\n)\s*\/\*\s*chayka:\s*declareVars\s*\*\//, function(match){
-                //     return (declareCode?'\n'+declareCode:'') + match;
-                // });
                 util.write('app/views/sidebar/' + vars.sidebarWidgetId + '/form.phtml', formCode);
-                // g.fs.write(g.destinationPath('app/views/sidebar/' + vars.sidebarWidgetId + '/form.phtml'), formCode);
 
                 // 6. add view
                 var viewCode = util.readTpl('views/sidebar/widget.xphtml');
-                // var viewCode = g.fs.read(g.templatePath('views/sidebar/widget.xphtml'));
                 viewCode = util.insertAtSlashStarComment('declareVars', viewCode, declareCode);
-                // viewCode = viewCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*declareVars\s*\*\//, function(match){
-                //     return (declareCode?'\n'+declareCode:'') + match;
-                // });
                 util.write('app/views/sidebar/' + vars.sidebarWidgetId + '/widget.phtml', viewCode);
-                // g.fs.write(g.destinationPath('app/views/sidebar/' + vars.sidebarWidgetId + '/widget.phtml'), viewCode);
             }
+        },
+
+        customPostType: function(){
+            var vars = this.Chayka.options;
+            // var g = this;
+            if(vars.mechanism === 'post-type'){
+
+                var constantCode = util.readTpl('code/registerCustomPostType.constant.xphp', vars);
+                var functionCode = util.readTpl('code/registerCustomPostType.function.xphp', vars);
+                var registerCode = util.readTpl('code/registerCustomPostType.register.xphp', vars);
+
+                var appFile = vars.appType === 'plugin'?'Plugin.php':'Theme.php';
+
+                var appCode = util.readDst(appFile);
+
+                if(appCode.indexOf('registerCustomPostTypes') > -1 ){
+                    appCode = util.insertAtSlashStarComment('constants', appCode, constantCode);
+                    appCode = util.insertAtSlashStarComment('registerCustomPostType', appCode, functionCode);
+                    appCode = util.insertAtSlashStarComment('registerCustomPostTypes', appCode, registerCode);
+                    util.write(appFile, appCode);
+                }else{
+                    this.composeWith('chayka', 
+                        {
+                            options: {
+                                'externalCall': 'enable-custom-post-types',
+                                'externalEmbeddings': [
+                                    {
+                                        'file': appFile,
+                                        'marker': 'constants',
+                                        'mode': 'curly',
+                                        'insert': constantCode,
+                                    },
+                                    {
+                                        'file': appFile,
+                                        'marker': 'registerCustomPostType',
+                                        'mode': 'curly',
+                                        'insert': functionCode,
+                                    },
+                                    {
+                                        'file': appFile,
+                                        'marker': 'registerCustomPostTypes',
+                                        'mode': 'curly',
+                                        'insert': registerCode,
+                                    },
+                                ],
+                            }
+                        }
+                    );
+                }
+            }
+
+        },
+
+        taxonomy: function(){
+            var vars = this.Chayka.options;
+            // var g = this;
+            if(vars.mechanism === 'taxonomy'){
+
+                var constantCode = util.readTpl('code/registerTaxonomy.constant.xphp', vars);
+                var functionCode = util.readTpl(vars.hierarchical ? 
+                        'code/registerTaxonomy.function.cat.xphp':
+                        'code/registerTaxonomy.function.tag.xphp', 
+                        vars);
+                var registerCode = util.readTpl('code/registerTaxonomy.register.xphp', vars);
+
+                var appFile = vars.appType === 'plugin'?'Plugin.php':'Theme.php';
+
+                var appCode = util.readDst(appFile);
+
+                if(appCode.indexOf('registerTaxonomies') > -1 ){
+                    appCode = util.insertAtSlashStarComment('constants', appCode, constantCode);
+                    appCode = util.insertAtSlashStarComment('registerTaxonomy', appCode, functionCode);
+                    appCode = util.insertAtSlashStarComment('registerTaxonomies', appCode, registerCode);
+                    util.write(appFile, appCode);
+                }else{
+                    this.composeWith('chayka', 
+                        {
+                            options: {
+                                'externalCall': 'enable-taxonomies',
+                                'externalEmbeddings': [
+                                    {
+                                        'file': appFile,
+                                        'marker': 'constants',
+                                        'mode': 'curly',
+                                        'insert': constantCode,
+                                    },
+                                    {
+                                        'file': appFile,
+                                        'marker': 'registerTaxonomy',
+                                        'mode': 'curly',
+                                        'insert': functionCode,
+                                    },
+                                    {
+                                        'file': appFile,
+                                        'marker': 'registerTaxonomies',
+                                        'mode': 'curly',
+                                        'insert': registerCode,
+                                    },
+                                ],
+                            }
+                        }
+                    );
+                }
+            }
+
         },
 
 

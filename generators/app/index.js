@@ -364,7 +364,7 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.initDep && (!g.appExists || answers.wizard === 'update-code');
             }
         }, {
-            name: 'support',
+            name: 'support', // http://codex.wordpress.org/Post_Formats
             message: 'Add support...',
             type: 'checkbox',
             choices: function(answers){
@@ -658,6 +658,16 @@ module.exports = yeoman.generators.Base.extend({
                 vars.support = ['Metaboxes'];
                 vars.register = ['registerMetaBoxes'];
                 break;
+            case 'enable-custom-post-types':
+                vars.wizard = 'update-code';
+                vars.support = [];
+                vars.register = ['registerCustomPostTypes'];
+                break;
+            case 'enable-taxonomies':
+                vars.wizard = 'update-code';
+                vars.support = [];
+                vars.register = ['registerTaxonomies'];
+                break;
             default:
                 this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
                 this.prompt(prompts, function(answers) {
@@ -883,6 +893,24 @@ module.exports = yeoman.generators.Base.extend({
                 appCode = this.ensureFunctions(appCode, vars.register);
                 if(snippets.length){
                     appCode = this.ensureFunctions(appCode, snippets);
+                }
+
+                if(this.options.externalEmbeddings){
+                    this.options.externalEmbeddings.forEach(function(item){
+                        if(item.file === appFile){
+                            switch(item.mode){
+                                case 'html':
+                                    appCode = util.insertAtHtmlComment(item.marker, appCode, item.insert, item.replace);
+                                    break;
+                                case 'curly':
+                                    appCode = util.insertAtSlashStarComment(item.marker, appCode, item.insert, item.replace);
+                                    break;
+                                case 'bracket':
+                                    appCode = util.insertBeforeClosingBracket(appCode, item.insert);
+                                    break;
+                            }
+                        }
+                    });
                 }
 
                 // this.log(appCode);

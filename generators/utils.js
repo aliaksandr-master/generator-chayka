@@ -60,8 +60,15 @@ module.exports = function(g){
 	        g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
 	    },
 
+	    insertAtHtmlComment: function(marker, containerCode, insertCode, replace){
+	    	var re = new RegExp('(?:\\n)[\\s^\\n]*<!--\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*-->', 'g');
+	        return containerCode.replace(re, function(match) {
+	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
+	        });
+	    },
+
 	    insertAtSlashStarComment: function(marker, containerCode, insertCode, replace){
-	    	var re = new RegExp('(?:\\n)\\s*\\/\\*\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*\\*\\/', 'g');
+	    	var re = new RegExp('(?:\\n)[\\s^\\n]*\\/\\*\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*\\*\\/', 'g');
 	        return containerCode.replace(re, function(match) {
 	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
 	        });
@@ -69,13 +76,6 @@ module.exports = function(g){
 
 	    insertBeforeClosingBracket: function(containerCode, insertCode){
 	        return containerCode.replace(/\}(?:[^}]*)\s*$/, insertCode + '}');
-	    },
-
-	    insertAtHtmlComment: function(marker, containerCode, insertCode, replace){
-	    	var re = new RegExp('(?:\\n)\\s*<!--\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*-->', 'g');
-	        return containerCode.replace(re, function(match) {
-	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
-	        });
 	    },
 
 	    dasherize: function(name){
@@ -102,12 +102,16 @@ module.exports = function(g){
 	        return g._.humanize(name);   
 	    },
 
+	    capitalize: function(name){
+	        return g._.capitalize(name);   
+	    },
+
 	    plural: function(name){
 	    	return name.replace(/y$/, 'ie') + 's';
 	    },
 
-	    singular: function(){
-	    	return name.replace(/s$/, '').replace(/ie/, 'y');
+	    singular: function(name){
+	    	return name.replace(/e?s$/, '').replace(/ie$/, 'y');
 	    },
 
 	    template: function(tpl, context){
@@ -126,7 +130,7 @@ module.exports = function(g){
 	        return !!value || 'This field is required';
 	    },
 
-        promptPair: function(invitaitonMsg, keyMsg, valueMsg, defaultValue, done){
+        promptPair: function(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, done){
             var pairPrompts = [
                 {
                     name: 'confirm',
@@ -148,6 +152,29 @@ module.exports = function(g){
                     message: valueMsg,
                     when: function (answers) {
                     	return (!invitaitonMsg || answers.confirm) && answers.key;
+                    },
+                    filter: function(value){
+                    	switch(filterKey){
+                    		case 'dasherize':
+                    			value = utils.dasherize(value);
+                    			break;
+                    		case 'slugify':
+                    			value = utils.slugify(value);
+                    			break;
+                    		case 'classify':
+                    			value = utils.classify(value);
+                    			break;
+                    		case 'camelize':
+                    			value = utils.camelize(value);
+                    			break;
+                    		case 'underscored':
+                    			value = utils.underscored(value);
+                    			break;
+                    		case 'humanize':
+                    			value = utils.humanize(value);
+                    			break;
+                    	}
+                        return value;
                     },
                     default: function(answers){
                     	var value = '';
@@ -179,18 +206,18 @@ module.exports = function(g){
             g.prompt(pairPrompts, done);
         },
 
-        promptPairs: function(invitaitonMsg, keyMsg, valueMsg, defaultValue, done){
+        promptPairs: function(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, done){
             var pairs = {};
             var pairReady = function(pair){
                 if(pair.key){
                     pairs[pair.key] = pair.value;
-                    utils.promptPair(false, keyMsg, valueMsg, defaultValue, pairReady);
+                    utils.promptPair(false, keyMsg, valueMsg, filterKey, defaultValue, pairReady);
                 }else{
                     done(pairs);
                 }
             };
 
-            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, defaultValue, pairReady);
+            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, pairReady);
         },
 
 	};

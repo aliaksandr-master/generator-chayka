@@ -6,6 +6,8 @@ use Chayka\WP;
 
 class <%= appClass %> extends WP\<%= appClass %>{
 
+    /* chayka: constants */
+    
     public static $instance = null;
 
     public static function init(){

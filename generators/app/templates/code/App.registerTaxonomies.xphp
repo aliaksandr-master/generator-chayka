@@ -5,3 +5,5 @@
     public function registerTaxonomies() {
 		/* chayka: registerTaxonomies */
     }
+
+	/* chayka: registerTaxonomy */

@@ -1,0 +1,39 @@
+    public function registerTaxonomy<%= _.classify(taxonomy) %>(){
+        $labels = array(
+            'name' => '<%= pluralName %>',
+            'singular_name' => '<%= singularName %>',
+            'menu_name' => '<%= menuName %>',
+            'all_items' => '<%= allItems %>',
+            'edit_item' => '<%= editItem %>',
+            'view_item' => '<%= viewItem %>',
+            'update_item' => '<%= updateItem %>',
+            'add_new_item' => '<%= addNewItem %>',
+            'new_item_name' => '<%= newItemName %>',
+            'search_items' => '<%= searchItems %>',
+            'popular_items' => '<%= popularItems %>',
+            'separate_items_with_commas' => '<%= separateItemsWithCommas %>',
+            'add_or_remove_items' => '<%= addOrRemoveItems %>',
+            'choose_from_most_used' => '<%= chooseFromMostUsed %>',
+            'not_found' => '<%= notFound %>',
+        );
+
+        register_taxonomy(self::TAXONOMY_<%= _.underscored(taxonomy).toUpperCase() %>, 
+            array(<%= objectType.join(', ') %>), 
+            array(
+                'labels' => $labels,
+                'public' => <%= public %>,
+                'show_ui' => <%= showUi %>,
+                'show_in_nav_menus' => <%= showInNavMenus %>,
+                'show_tagcloud' => <%= showTagcloud %>,
+                'meta_box_cb' => <%= metaBoxCb? "'" + metaBoxCb + "'" : metaBoxCb %>,
+                'show_admin_column' => <%= showInNavMenus %>,
+                'hierarchical' => <%= hierarchical %>,
+                'update_count_callback' => '<%= updateCountCallback %>',
+                'hierarchical' => <%= hierarchical %>,
+                'query_var' => <%= queryVar? "'" + queryVar + "'" : queryVar %>,
+                'rewrite' => <%= rewrite %>,
+                'sort' => <%= sort %>,
+            )
+        );
+        
+    }

@@ -13,7 +13,7 @@
             'search_items' => '<%= searchItems %>',
             'not_found' => '<%= notFound %>',
             'not_found_in_trash' => '<%= notFoundInTrash %>',
-            'parent_item_colon' => '<%= parentItemColon %>',
+            'parent_item_colon' => '<%= parentItemColon %>:',
         );
         $args = array(
             'labels' => $labels,
