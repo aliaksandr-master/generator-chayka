@@ -1,0 +1,1 @@
+	<div class="<%= _.underscored(paramName) %>"><%= _.humanize(paramName) %>: <?php echo $this-><%= paramName %>;?></div>

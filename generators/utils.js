@@ -30,6 +30,10 @@ module.exports = function(g){
 	        return context ? g._.template(tpl, context) : tpl;
 	    },
 
+	    readDstOrTpl: function(dstFile, tplFile, context){
+            return utils.pathExists(dstFile) ? utils.readDst(dstFile) : utils.readTpl(tplFile, context);
+	    },
+
 	    write: function(file, content){
 	    	return g.fs.write(g.destinationPath(file), content);
 	    },
@@ -82,6 +86,10 @@ module.exports = function(g){
 	        return g._.dasherize(name);   
 	    },
 
+	    dashify: function(name){
+	        return g._.dasherize(name).replace(/^-/, '');   
+	    },
+
 	    slugify: function(name){
 	        return g._.slugify(name);   
 	    },
@@ -130,19 +138,83 @@ module.exports = function(g){
 	        return !!value || 'This field is required';
 	    },
 
-        promptPair: function(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, done){
+        promptPair: function(invitaitonMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
+        	var filters, keyFilters, valueFilters;
+        	filters = keyFilters = valueFilters = ['-none-', 'dasherize', 'dashify', 'slugify', 'classify', 'camelize', 'underscored', 'humanize'];
+
+        	if(g._.isArray(keyFilter)){
+        		keyFilters = keyFilter;
+        		keyFilter = keyFilters.shift();
+        	}
+			if(g._.isArray(valueFilter)){
+        		valueFilters = valueFilter;
+        		valueFilter = valueFilters.shift();
+        	}
+
+        	var a;
             var pairPrompts = [
                 {
                     name: 'confirm',
                     type: 'confirm',
                     message: invitaitonMsg||' ',
-                    when: function(){
+                    when: function(answers){
+                    	a = answers;
                     	return !!invitaitonMsg;
                     }
                 },
                 {
+                	name: 'keyFilter',
+                	message: keyFilter,
+                	type: 'list',
+                	choices: keyFilters,
+                	default: function(){
+                		return 0;
+                	},
+                	when: function(answers){
+                		return (!invitaitonMsg || answers.confirm) && !!keyFilter && filters.indexOf(keyFilter) === -1;
+                	}
+                },
+                {
+                	name: 'valueFilter',
+                	message: valueFilter,
+                	type: 'list',
+                	choices: valueFilters,
+                	default: function(){
+                		return 0;
+                	},
+                	when: function(answers){
+                		return (!invitaitonMsg || answers.confirm) && !!valueFilter && filters.indexOf(valueFilter) === -1;
+                	}
+                },
+                {
                     name: 'key',
                     message: keyMsg,
+                    filter: function(value){
+                    	switch(a.keyFilter || keyFilter){
+                    		case 'dasherize':
+                    			value = utils.dasherize(value);
+                    			break;
+                    		case 'dashify':
+                    			value = utils.dashify(value);
+                    			break;
+                    		case 'slugify':
+                    			value = utils.slugify(value);
+                    			break;
+                    		case 'classify':
+                    			value = utils.classify(value);
+                    			break;
+                    		case 'camelize':
+                    			value = utils.camelize(value);
+                    			break;
+                    		case 'underscored':
+                    			value = utils.underscored(value);
+                    			break;
+                    		case 'humanize':
+                    			value = utils.humanize(value);
+                    			break;
+                    	}
+                        return value;
+                    },
                     when: function (answers) {
                     	return !invitaitonMsg || answers.confirm;
                     }
@@ -154,9 +226,12 @@ module.exports = function(g){
                     	return (!invitaitonMsg || answers.confirm) && answers.key;
                     },
                     filter: function(value){
-                    	switch(filterKey){
+                    	switch(a.valueFilter || valueFilter){
                     		case 'dasherize':
                     			value = utils.dasherize(value);
+                    			break;
+                    		case 'dashify':
+                    			value = utils.dashify(value);
                     			break;
                     		case 'slugify':
                     			value = utils.slugify(value);
@@ -178,7 +253,7 @@ module.exports = function(g){
                     },
                     default: function(answers){
                     	var value = '';
-                    	switch(defaultValue){
+                    	switch(answers.valueFilter || valueFilter){
                     		case 'dasherize':
                     			value = utils.dasherize(answers.key);
                     			break;
@@ -206,18 +281,24 @@ module.exports = function(g){
             g.prompt(pairPrompts, done);
         },
 
-        promptPairs: function(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, done){
+        promptPairs: function(invitaitonMsg, moreMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
             var pairs = {};
             var pairReady = function(pair){
-                if(pair.key){
+                if(pair.key || pair.confirm){
                     pairs[pair.key] = pair.value;
-                    utils.promptPair(false, keyMsg, valueMsg, filterKey, defaultValue, pairReady);
+                    if(pair.keyFilter){
+                    	keyFilter = pair.keyFilter;
+                    }
+                    if(pair.valueFilter){
+                    	valueFilter = pair.valueFilter;
+                    }
+                    utils.promptPair(moreMsg, keyMsg, valueMsg, keyFilter, valueFilter, pairReady);
                 }else{
                     done(pairs);
                 }
             };
 
-            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, filterKey, defaultValue, pairReady);
+            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, keyFilter, valueFilter, pairReady);
         },
 
 	};

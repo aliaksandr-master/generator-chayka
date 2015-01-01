@@ -18,6 +18,7 @@ module.exports = yeoman.generators.Base.extend({
     },
     prompting: function() {
         var done = this.async();
+        var g = this;
         // this.log(_);
         // Have Yeoman greet the user.
         var prompts = [{
@@ -37,19 +38,30 @@ module.exports = yeoman.generators.Base.extend({
                 }, 
             ],
             default: 'controller'
-        }, {
+        }, 
+            /* controller */
+        {
             name: 'controller',
             message: 'Controller name:',
             default: 'SomeController',
             when: function(answers) {
                 return answers.wizard === 'controller';
             }
-        }, {
-            name: 'controllerFile',
+        }, 
+            /* action */
+        {
+            name: 'controller',
             message: 'Select controller:',
             type: 'list',
             choices: function(){
-                return util.readDirDst('app/controllers'); 
+                var files = util.readDirDst('app/controllers'); 
+                var controllers = [];
+
+                files.forEach(function(file){
+                    controllers.push(file.replace('.php', ''));
+                });
+
+                return controllers;
             },
             when: function(answers) {
                 return answers.wizard === 'action';
@@ -74,18 +86,15 @@ module.exports = yeoman.generators.Base.extend({
             when: function(answers) {
                 return answers.wizard === 'action';
             }
-        }, {
-            name: 'actionDummy',
-            message: 'Put some dummy handy code?',
-            type: 'confirm',
-            when: function(answers) {
-                return answers.wizard === 'action';
-            }
-        }, {
+        }, 
+            /* model */
+        {
             name: 'model',
             message: 'Model name:',
             type: 'input',
-            default: 'DummyModel',
+            default: function(){
+                return 'DummyModel';
+            },
             when: function(answers) {
                 return answers.wizard === 'model';
             }
@@ -112,17 +121,52 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.wizard === 'model';
             }
         }];
-        var vars = this.Chayka.options;
+
+        var promptDone = function(answers) {
+            if(answers.wizard === 'action'){
+                answers.params = answers.params || {};
+                answers.getParamsCode = '';
+                answers.assignParamsCode = '';
+                answers.declareVarsCode = '';
+                answers.outputVarsCode = '';
+            }
+            if(answers.wizard === 'action' && !answers.blockParams){
+                util.promptPairs(
+                    'Generate params with default values?', 'One more param?', 
+                    'Input param name:', 'Input param default value:', 
+                    ['Select input param name format:', 'underscored', 'dashify', 'camelize'], null, 
+                function(pairs){
+
+                    util.extend(answers.params, pairs);
+                    var getParamTpl = util.readTpl(answers.actionType === 'view' ? 'controllers/Action.getParam.xphp': 'controllers/Action.checkParam.xphp');
+                    var assignParamTpl = util.readTpl(answers.actionType === 'view' ? 'controllers/Action.assign.xphp': 'controllers/Action.payload.xphp');
+                    var declareVarTpl = util.readTpl('views/declareVar.xphtml');
+                    var outputVarTpl = util.readTpl('views/outputVar.xphtml');
+
+                    for(var key in answers.params){
+                        var value = answers.params[key];
+                        answers.getParamsCode += util.template(getParamTpl, {'paramName': key, 'defValue': value});
+                        answers.assignParamsCode += util.template(assignParamTpl, {'paramName': key, 'defValue': value});
+                        answers.declareVarsCode += util.template(declareVarTpl, {'paramName': key, 'defValue': value});
+                        answers.outputVarsCode += util.template(outputVarTpl, {'paramName': key, 'defValue': value});
+                    }
+                    util.extend(g.Chayka.options, answers);
+                    done();
+                });
+
+            }else{
+                util.extend(this.Chayka.options, answers);
+                done();
+            }
+        }.bind(this);
+
         if(this.options.externalCall){
-            util.extend(vars, this.options.externalCall);
-            done();
+            // util.extend(vars, this.options.externalCall);
+            // done();
+            promptDone(this.options.externalCall);
         }else{
             this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
-            this.prompt(prompts, function(props) {
-                util.extend(this.Chayka.options, props);
-                // this.log(this.Chayka.options);
-                done();
-            }.bind(this));
+            this.prompt(prompts, promptDone);
         }
     },
     writing: {
@@ -143,43 +187,49 @@ module.exports = yeoman.generators.Base.extend({
                     'app/controllers/'+vars.controller + 'Controller.php', 
                     vars
                 );
-                util.mkdir('app/views/'+util.slugify(vars.controller));
+                util.mkdir('app/views/'+util.dashify(vars.controller));
             }
         },
 
         action: function() {
             var vars = this.Chayka.options;
             if(vars.wizard === 'action'){
+
                 vars.action = util.camelize(vars.action).replace(/Action$/, '');
                 var actionCode = util.readTpl(
-                    vars.actionDummy?
-                        (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
-                        'controllers/Action.empty.xphp', 
+                        (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'),
                     vars);
-                // var actionCode = this._.template(this.fs.read(this.templatePath(vars.actionDummy?
-                //     (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'):
-                //     'controllers/Action.empty.xphp'
-                // )), vars);
-                var controllerCode = util.readDst('app/controllers/' + vars.controllerFile);
-                // var controllerCode = this.fs.read(this.destinationPath('app/controllers/' + vars.controllerFile));
+
+                actionCode = util.insertAtSlashStarComment('getParams', actionCode, vars.getParamsCode, true);
+                actionCode = util.insertAtSlashStarComment('assignParams', actionCode, vars.assignParamsCode, true);
+
+                vars.controller = util.classify(vars.controller).replace(/Controller$/, '');
+                var controllerFile = 'app/controllers/' + vars.controller + 'Controller.php';
+                var controllerCode = util.readDstOrTpl(controllerFile, 'controllers/Controller.xphp', vars);
+                util.mkdir('app/views/'+util.dashify(vars.controller));
 
                 if(!controllerCode.match(new RegExp('function\\s+' + vars.action))){
                    controllerCode = util.insertBeforeClosingBracket(controllerCode, actionCode);
-                   // controllerCode = controllerCode.replace(/}\s*$/, actionCode + '\n}');
-                   util.write('app/controllers/'+vars.controllerFile, controllerCode);
+                   util.write('app/controllers/'+vars.controller + 'Controller.php', controllerCode);
                 }
 
-                var dashController = util.slugify(vars.controllerFile.replace(/Controller.php$/, ''));
-                var dashAction = util.slugify(vars.action);
+                var dashController = util.dashify(vars.controller.replace(/Controller$/, ''));
+                var dashAction = util.dashify(vars.action);
 
                 var viewFile = 'app/views/' + dashController + '/' + dashAction + '.phtml';
 
                 if(vars.actionType === 'view' && !util.pathExists(viewFile)){
-                    this.log('view:' +viewFile);
-                    util.copy(
-                        'views/view.xphtml',
-                        viewFile
-                    );         
+                    var viewCode = util.readTpl('views/view.xphtml', vars);
+
+                    viewCode = util.insertAtSlashStarComment('declareVars', viewCode, vars.declareVarsCode, true);
+                    viewCode = util.insertAtHtmlComment('params', viewCode, vars.outputVarsCode, true);
+
+                    util.write(viewFile, viewCode);
+
+                    // util.copy(
+                    //     'views/view.xphtml',
+                    //     viewFile
+                    // );         
                 }
             }
         },

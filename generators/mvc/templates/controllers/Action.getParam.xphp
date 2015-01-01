@@ -1,0 +1,1 @@
+    	$<%= _.camelize(paramName) %> = InputHelper::getParam('<%= paramName %>'<%= defValue? ", '" + defValue + "'" : '' %>);

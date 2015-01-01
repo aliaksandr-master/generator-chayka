@@ -1,0 +1,1 @@
+	<div class="<%= _.underscored(fieldName) %>"><%= _.humanize(fieldName) %>: <?php echo $this-><%= fieldName %>;?></div>

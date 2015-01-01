@@ -105,7 +105,7 @@ module.exports = yeoman.generators.Base.extend({
                         callback(fieldCode, answers);
                         break;
                     case 'select':
-                        util.promptPairs('Generate options?', 'Option label:', 'Option value:', null, 'slugify', function(pairs){
+                        util.promptPairs('Generate options?', 'One more option?', 'Option label:', 'Option value:', null, 'slugify', function(pairs){
                             answers.fieldOptions = g._.invert(pairs);
                             fieldCode = util.readTpl('views/' + mode + '/select.xphtml', answers);
                             
@@ -352,6 +352,28 @@ module.exports = yeoman.generators.Base.extend({
             },
             when: function(answers) {
                 return answers.mechanism === 'sidebar-widget';
+            }
+        },
+            /* Shortcodes */
+        {
+            name: 'shortcode',
+            message: 'Shortcode name ' + chalk.reset.gray('(underscored)') + ':',
+            filter: function(value){
+                return util.underscored(value);
+            },
+            when: function(answers) {
+                return answers.mechanism === 'shortcode';
+            }
+        },
+        {
+            name: 'isContainer',
+            message: 'Need enclosing tag?:',
+            type: 'confirm',
+            default: function(){
+                return false;
+            },
+            when: function(answers) {
+                return answers.mechanism === 'shortcode';
             }
         },
             /* Custom Post Types */
@@ -1141,6 +1163,12 @@ module.exports = yeoman.generators.Base.extend({
                     util.extend(g.Chayka.options, answers);
                     done();
                 });
+            // }else if(answers.mechanism === 'shortcode'){
+            //     util.promptPairs('Generate params with default values?', 'One more param?', 'Param name:', 'Param default value:', 'camelize', null, function(pairs){
+            //         answers.params = pairs;
+            //         util.extend(g.Chayka.options, answers);
+            //         done();
+            //     });
             }else{
                 _.extend(this.Chayka.options, answers);
                 done();
@@ -1206,8 +1234,9 @@ module.exports = yeoman.generators.Base.extend({
                                 wizard: 'action',
                                 action: vars.pageSlug,
                                 actionType: 'api',
-                                actionDummy: false,
-                                controllerFile: 'AdminController.php',
+                                actionParams: false,
+                                blockParams: true,
+                                controller: 'AdminController',
                             },
                         }
                     }
@@ -1271,8 +1300,9 @@ module.exports = yeoman.generators.Base.extend({
                                 wizard: 'action',
                                 action: vars.metaboxSlug,
                                 actionType: 'api',
-                                actionDummy: false,
-                                controllerFile: 'MetaboxController.php',
+                                actionParams: false,
+                                blockParams: true,
+                                controller: 'MetaboxController',
                             },
                         }
                     }
@@ -1328,9 +1358,16 @@ module.exports = yeoman.generators.Base.extend({
 
                 // 5. declare view vars
                 var declareCode = '';
-                var declareTpl = util.readTpl('views/sidebar/declareVars.xphtml');
+                var declareTpl = util.readTpl('views/declareVar.xphtml');
                 vars.fields.forEach(function(field){
                     declareCode += util.template(declareTpl, field);
+                });
+
+                // 5.a output view vars
+                var outputCode = '';
+                var outputTpl = util.readTpl('views/outputVar.xphtml');
+                vars.fields.forEach(function(field){
+                    outputCode += util.template(outputTpl, field);
                 });
 
                 // 6. add form
@@ -1341,9 +1378,59 @@ module.exports = yeoman.generators.Base.extend({
 
                 // 6. add view
                 var viewCode = util.readTpl('views/sidebar/widget.xphtml');
+                viewCode = util.insertAtHtmlComment('fields', viewCode, outputCode);
                 viewCode = util.insertAtSlashStarComment('declareVars', viewCode, declareCode);
                 util.write('app/views/sidebar/' + vars.sidebarWidgetId + '/widget.phtml', viewCode);
             }
+        },
+
+        shortcode: function(){
+            var vars = this.Chayka.options;
+            // var g = this;
+            if(vars.mechanism === 'shortcode'){
+
+                var registerCode = util.readTpl('code/addShortcode.xphp', vars);
+
+                var appFile = vars.appType === 'plugin'?'Plugin.php':'Theme.php';
+
+                var appCode = util.readDst(appFile);
+
+                if(appCode.indexOf('registerShortcodes') > -1 ){
+                    appCode = util.insertAtSlashStarComment('registerShortcodes', appCode, registerCode);
+                    util.write(appFile, appCode);
+                }else{
+                    this.composeWith('chayka', 
+                        {
+                            options: {
+                                'externalCall': 'enable-shortcodes',
+                                'externalEmbeddings': [
+                                    {
+                                        'file': appFile,
+                                        'marker': 'registerShortcodes',
+                                        'mode': 'curly',
+                                        'insert': registerCode,
+                                    },
+                                ],
+                            }
+                        }
+                    );
+                }
+
+                this.composeWith('chayka:mvc', 
+                    {
+                        options: {
+                            'externalCall': {
+                                wizard: 'action',
+                                action: vars.shortcode,
+                                actionType: 'view',
+                                controller: 'ShortcodeController',
+                                params: vars.isContainer?{content:''}:{},
+                            },
+                        }
+                    }
+                );
+            }
+
         },
 
         customPostType: function(){

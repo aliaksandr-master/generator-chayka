@@ -658,6 +658,11 @@ module.exports = yeoman.generators.Base.extend({
                 vars.support = ['Metaboxes'];
                 vars.register = ['registerMetaBoxes'];
                 break;
+            case 'enable-shortcodes':
+                vars.wizard = 'update-code';
+                vars.support = [];
+                vars.register = ['registerShortcodes'];
+                break;
             case 'enable-custom-post-types':
                 vars.wizard = 'update-code';
                 vars.support = [];

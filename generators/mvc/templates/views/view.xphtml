@@ -1,9 +1,8 @@
 <?php 
-	$this->declareVars(array(
-		'someParam' => 'Hello',
-		'anotherParam' => 'World!',
-	));
+    $this->declareVars(array(
+        /* chayka: declareVars */
+    ));
 ?>
-<div>
-	<?php echo $this->someParam;?> <?php echo $this->anotherParam;?>
+<div class="<%= _.underscored(controller.replace(/Controller$/, '')) %> <%= _.underscored(action) %>">
+    <!-- chayka: params -->
 </div>

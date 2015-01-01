@@ -1,7 +1,7 @@
     public function <%= action %>Action(){
         //	AclHelper::apiAuthRequired();
 
-    	$value = InputHelper::checkParam('some-param')->required()->getValue();
+    	/* chayka: getParams */
 
         InputHelper::validateInput(true);
 
@@ -12,10 +12,10 @@
 		}
 
 		try{
-			//	do something useful
+			//	do something usefull
 			
 			$payload = array(
-				'param' => $value;
+		    	/* chayka: assignParams */
 			);
 
 			JsonHelper::respond($payload);

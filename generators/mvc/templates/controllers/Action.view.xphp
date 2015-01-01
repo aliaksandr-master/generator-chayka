@@ -1,6 +1,7 @@
     public function <%= action %>Action(){
-    	$value = InputHelper::getParam('some-param', 'n/a');
+    	/* chayka: getParams */
 
-		$this->view->assign('someParam', $value);
-		// or $this->view->someParam = $value;
+    	// do something usefull here
+
+    	/* chayka: assignParams */
     }

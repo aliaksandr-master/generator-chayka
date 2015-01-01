@@ -1,0 +1,1 @@
+		$this->view->assign('<%= _.camelize(paramName) %>', $<%= _.camelize(paramName) %>);

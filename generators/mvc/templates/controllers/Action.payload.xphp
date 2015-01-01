@@ -1,0 +1,1 @@
+				'<%= _.camelize(paramName) %>' => $<%= _.camelize(paramName) %>,
