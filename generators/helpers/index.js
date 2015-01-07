@@ -5,16 +5,20 @@ var yosay = require('yosay');
 // var shelljs = require('shelljs');
 // var fs = require('fs');
 var utils = require('../utils'), util = null;
+var promptAnswers = {};
 // console.log(shelljs);
 // var strings = require('yeoman-generator/underscore.strings');
 module.exports = yeoman.generators.Base.extend({
     initializing: function() {
         this.pkg = require('../../package.json');
         util = utils(this);
+        this.config.defaults({
+            'helpers': [],
+        });
 
-        this.Chayka = {
-            options: util.readJSON('chayka.json')
-        };
+        // this.Chayka = {
+        //     options: util.readJSON('chayka.json')
+        // };
     },
     prompting: function() {
         var done = this.async();
@@ -45,18 +49,13 @@ module.exports = yeoman.generators.Base.extend({
                 ];
             },
             default: 'plugin'
-        }, {
-            name: 'parentTheme',
-            message: 'Parent theme name, if omitted simple (non-child) theme will be created',
-            when: function(answers) {
-                return answers.appType === 'child-theme';
-            }
         }];
 
-        this.prompt(prompts, function(props) {
-            util.extend(this.Chayka.options, props);
+        this.prompt(prompts, function(answers) {
+            util.extend(promptAnswers, this.config.getAll(), answers);
+            // util.extend(this.Chayka.options, props);
             // _.extend(this.Chayka.options, props);
-            this.log(this.Chayka.options);
+            // this.log(this.Chayka.options);
 
             done();
         }.bind(this));
@@ -72,7 +71,8 @@ module.exports = yeoman.generators.Base.extend({
         },
 
         helpers: function() {
-            var vars = this.Chayka.options;
+            var vars = promptAnswers;
+            var helpers = this.config.get('helpers');
             vars.phpAppClass = vars.appType === 'plugin' ? 'Plugin':'Theme'; 
 
             if(vars.helpers.indexOf('email') >= 0){
@@ -89,6 +89,10 @@ module.exports = yeoman.generators.Base.extend({
                     'views/email/template.xphtml', 
                     'app/views/email/template.phtml'
                 );
+
+                if(helpers.indexOf('email') === -1){
+                    helpers.push('email');
+                }
             }
 
             if(vars.helpers.indexOf('nls') >= 0){
@@ -104,6 +108,9 @@ module.exports = yeoman.generators.Base.extend({
                     'nls/main._.xphp', 
                     'app/nls/main._.php'
                 );
+                if(helpers.indexOf('nls') === -1){
+                    helpers.push('nls');
+                }
             }
 
             if(vars.helpers.indexOf('option') >= 0){
@@ -112,12 +119,16 @@ module.exports = yeoman.generators.Base.extend({
                     'app/helpers/OptionHelper.php', 
                     vars
                 );
+                if(helpers.indexOf('option') === -1){
+                    helpers.push('option');
+                }
             }
 
+            this.config.set('helpers', helpers);
         },
 
     },
     install: function() {
-        
+
     }
 });

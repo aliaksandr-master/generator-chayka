@@ -4,6 +4,7 @@ var chalk = require('chalk');
 var yosay = require('yosay');
 var shelljs = require('shelljs');
 var utils = require('../utils'), util = null;
+var promptAnswers = {}
 // var fs = require('fs');
 // console.log(shelljs);
 // var strings = require('yeoman-generator/underscore.strings');
@@ -52,17 +53,13 @@ module.exports = yeoman.generators.Base.extend({
 
         var g = this;
 
-        // g.log(g);
-
         g.appExists = util.pathExists('Theme.php') || util.pathExists('Plugin.php');
 
-        // g.log('appExists: '+g.appExists);
-
-        g.Chayka = {
-            options: util.pathExists('chayka.json')?
-                util.readJSON('chayka.json'):
-                {}
-            };
+        // g.Chayka = {
+        //     options: util.pathExists('chayka.json')?
+        //         util.readJSON('chayka.json'):
+        //         {}
+        //     };
 
         this.ensureSupport = function(appCode, support){
             var supportCode = '';
@@ -74,9 +71,6 @@ module.exports = yeoman.generators.Base.extend({
 
             /* chayka: init/addSupport */
             return util.insertAtSlashStarComment('init/addSupport', appCode, supportCode);
-            // return appCode.replace(/(?:\n)\s*\/\*\s*chayka:\s*init\/addSupport\s*\*\//, function(match){
-            //     return (supportCode?'\n'+supportCode:'') + match;
-            // });
         };
 
         this.ensureFunctions = function(appCode, functions){
@@ -88,7 +82,6 @@ module.exports = yeoman.generators.Base.extend({
             });
 
             return util.insertBeforeClosingBracket(appCode, functionsCode);   
-            // return appCode.replace(/\}(?:[^}]*)\s*$/, functionsCode + '}');   
         };
 
         this.ensureIdeaPhpIncludePath = function(configCode, deps){
@@ -102,9 +95,6 @@ module.exports = yeoman.generators.Base.extend({
             }
 
             return util.insertAtHtmlComment('includePath', configCode, depsCode);
-            // return configCode.replace(/(?:\n)\s*<!--\s*chayka:\s*includePath\s*-->/g, function(match){
-            //     return '\n'+depsCode + match;
-            // });   
         };
 
         this.resolveDeps = function(dep, deps){
@@ -123,13 +113,28 @@ module.exports = yeoman.generators.Base.extend({
 
             return deps;
         };
-        // this.log(this._);
+
+        this.generateProjectName = function(answers){
+            var name = answers.appName;
+            // console.log('parent theme: '+ answers.parentTheme);
+            if(answers.parentTheme && answers.includeParent){
+                name += '.'+answers.parentTheme;
+            }
+            name += answers.appType === 'plugin'?'.wpp':'.wpt';
+            return name;
+        };
+
+        g.config.defaults({
+            'support': [],
+            'register': [],
+        });
     },
     prompting: function() {
         var done = this.async();
         // var _ = this._;
         var g = this;
-        var config = g.Chayka.options;
+        var config = g.config.getAll();
+        // var config = g.Chayka.options;
         // Have Yeoman greet the user.
         var prompts = [{
             name: 'wizard',
@@ -179,6 +184,17 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.appType === 'child-theme' && (!g.appExists || answers.wizard === 'update-configs');
             }
         }, {
+            name: 'includeParent',
+            message: 'Include parent theme name in project name?',
+            type: 'confirm',
+            when: function(answers) {
+                if (answers.appType === 'child-theme' && !answers.parentTheme) {
+                    answers.appType = 'theme';
+                }
+                return !g.appExists && answers.appType === 'child-theme';
+            },
+            store: true,
+        }, {
             name: 'routing',
             message: 'Please select routing type',
             type: 'list',
@@ -190,9 +206,6 @@ module.exports = yeoman.generators.Base.extend({
                 value: 'Chayka'
             }, ],
             when: function(answers) {
-                if (answers.appType === 'child-theme' && !answers.parentTheme) {
-                    answers.appType = 'theme';
-                }
                 return !g.appExists && answers.appType === 'theme';
             }
         }, {
@@ -264,7 +277,7 @@ module.exports = yeoman.generators.Base.extend({
             default: function(answers) {
                 var re = new RegExp('^' + answers.packagistVendor + '[\\._\\-]?', 'i');
                 var pck = answers.appName.replace(re, '');
-                if (answers.parentTheme) {
+                if (answers.parentTheme && answers.includeParent) {
                     pck += '-' + answers.parentTheme;
                 }
                 pck += answers.appType === 'plugin' ? '-wpp' : '-wpt';
@@ -372,22 +385,32 @@ module.exports = yeoman.generators.Base.extend({
                     {
                         name: 'URI Processing',
                         value: 'UriProcessing',
+                        checked: config.support.indexOf('UriProcessing') > -1,
+                        disabled: config.support.indexOf('UriProcessing') > -1,
                     },
                     {
                         name: 'Console Pages',
                         value: 'ConsolePages',
+                        checked: config.support.indexOf('ConsolePages') > -1,
+                        disabled: config.support.indexOf('ConsolePages') > -1,
                     },
                     {
                         name: 'Metaboxes',
                         value: 'Metaboxes',
+                        checked: config.support.indexOf('Metaboxes') > -1,
+                        disabled: config.support.indexOf('Metaboxes') > -1,
                     },
                     {
                         name: 'Custom Permalinks',
                         value: 'CustomPermalinks',
+                        checked: config.support.indexOf('CustomPermalinks') > -1,
+                        disabled: config.support.indexOf('CustomPermalinks') > -1,
                     },
                     {
                         name: 'Post Processing',
                         value: 'PostProcessing',
+                        checked: config.support.indexOf('PostProcessing') > -1,
+                        disabled: config.support.indexOf('PostProcessing') > -1,
                     },
                 ];
 
@@ -395,10 +418,14 @@ module.exports = yeoman.generators.Base.extend({
                     {
                         name: 'Thumbnails',
                         value: 'Thumbnails',
+                        checked: config.support.indexOf('Thumbnails') > -1,
+                        disabled: config.support.indexOf('Thumbnails') > -1,
                     },
                     {
                         name: 'Excerpt',
                         value: 'Excerpt',
+                        checked: config.support.indexOf('Excerpt') > -1,
+                        disabled: config.support.indexOf('Excerpt') > -1,
                     }
                 );
             },
@@ -415,50 +442,62 @@ module.exports = yeoman.generators.Base.extend({
                     {
                         name: 'Actions',
                         value: 'registerActions',
-                        checked: true
+                        checked: config.register.indexOf('registerActions') > -1 || true,
+                        disabled: config.register.indexOf('registerActions') > -1,
                     },
                     {
                         name: 'Filters',
                         value: 'registerFilters',
-                        checked: true
+                        checked: config.register.indexOf('registerFilters') > -1 || true,
+                        disabled: config.register.indexOf('registerFilters') > -1,
                     },
                     {
                         name: 'Resources',
                         value: 'registerResources',
-                        checked: true
+                        checked: config.register.indexOf('registerResources') > -1 || true,
+                        disabled: config.register.indexOf('registerResources') > -1,
                     },
                     {
                         name: 'Routes',
                         value: 'registerRoutes',
-                        checked: answers.support.indexOf('UriProcessing') > -1
+                        checked: config.register.indexOf('registerRoutes') > -1 || answers.support.indexOf('UriProcessing') > -1,
+                        disabled: config.register.indexOf('registerRoutes') > -1,
                     },
                     {
                         name: 'Custom Post Types',
                         value: 'registerCustomPostTypes',
-                        checked: answers.support.indexOf('CustomPermalinks') > -1
+                        checked: config.register.indexOf('registerCustomPostTypes') > -1 || answers.support.indexOf('CustomPermalinks') > -1,
+                        disabled: config.register.indexOf('registerCustomPostTypes') > -1,
                     },
                     {
                         name: 'Taxonomies',
                         value: 'registerTaxonomies',
-                        checked: answers.support.indexOf('CustomPermalinks') > -1
+                        checked: config.register.indexOf('registerTaxonomies') > -1 || answers.support.indexOf('CustomPermalinks') > -1,
+                        disabled: config.register.indexOf('registerTaxonomies') > -1,
                     },
                     {
                         name: 'Console Pages',
                         value: 'registerConsolePages',
-                        checked: answers.support.indexOf('ConsolePages') > -1
+                        checked: config.register.indexOf('registerConsolePages') > -1 || answers.support.indexOf('ConsolePages') > -1,
+                        disabled: config.register.indexOf('registerConsolePages') > -1,
                     },
                     {
                         name: 'Metaboxes',
                         value: 'registerMetaboxes',
-                        checked: answers.support.indexOf('Metaboxes') > -1
+                        checked: config.register.indexOf('registerMetaboxes') > -1 || answers.support.indexOf('Metaboxes') > -1,
+                        disabled: config.register.indexOf('registerMetaboxes') > -1,
                     },
                     {
                         name: 'Shortcodes',
                         value: 'registerShortcodes',
+                        checked: config.register.indexOf('registerShortcodes') > -1,
+                        disabled: config.register.indexOf('registerShortcodes') > -1,
                     },
                     {
                         name: 'Sidebars',
                         value: 'registerSidebars',
+                        checked: config.register.indexOf('registerSidebars') > -1,
+                        disabled: config.register.indexOf('registerSidebars') > -1,
                     },
                 ];
 
@@ -531,22 +570,18 @@ module.exports = yeoman.generators.Base.extend({
             default: function(answers) {
                 var repo = '';
                 //'git@bitbucket.org:chaykaborya/wpp-jurcatalogby-catalog.git'
-                var appName = answers.appName;
-                if (answers.parentTheme) {
-                    appName += '-' + answers.parentTheme;
-                }
-                var suffix = answers.appType === 'plugin' ? '.wpp' : '.wpt';
+                var prjName = g.generateProjectName(answers);
                 switch (answers.gitRemote) {
                     case 'github':
-                        repo = 'git@github.com:' + answers.githubUser + '/' + appName + suffix + '.git';
+                        repo = 'git@github.com:' + answers.githubUser + '/' + prjName + '.git';
                         break;
                     case 'bitbucket':
-                        repo = 'git@bitbucket.org:' + answers.bitbucketUser + '/' + appName.toLowerCase() + suffix + '.git';
+                        repo = 'git@bitbucket.org:' + answers.bitbucketUser + '/' + prjName.toLowerCase() + '.git';
                         break;
                 }
                 return repo;
             },
-            store: true
+            // store: true
         }, {
             name: 'gitPush',
             message: 'git push?',
@@ -568,7 +603,7 @@ module.exports = yeoman.generators.Base.extend({
             name: 'ideaProject',
             message: 'Idea project name?',
             default: function(answers){
-                return answers.appName + (answers.appType === 'plugin'?'.wpp':'.wpt');
+                return g.generateProjectName(answers);
             },
             when: function(answers){
                 return !!answers.ideaInit;
@@ -646,32 +681,31 @@ module.exports = yeoman.generators.Base.extend({
             },
             store: true
         }];
-        var vars = this.Chayka.options;
+        promptAnswers = config;
+        promptAnswers.support = promptAnswers.support || [];
+        promptAnswers.register = promptAnswers.register || [];
         switch(g.options.externalCall){
             case 'enable-console-pages':
-                vars.wizard = 'update-code';
-                vars.support = ['ConsolePages'];
-                vars.register = ['registerConsolePages'];
+                promptAnswers.wizard = 'update-code';
+                promptAnswers.support.push('ConsolePages');
+                promptAnswers.register.push('registerConsolePages');
                 break;
             case 'enable-metaboxes':
-                vars.wizard = 'update-code';
-                vars.support = ['Metaboxes'];
-                vars.register = ['registerMetaBoxes'];
+                promptAnswers.wizard = 'update-code';
+                promptAnswers.support.push('Metaboxes');
+                promptAnswers.register.push('registerMetaBoxes');
                 break;
             case 'enable-shortcodes':
-                vars.wizard = 'update-code';
-                vars.support = [];
-                vars.register = ['registerShortcodes'];
+                promptAnswers.wizard = 'update-code';
+                promptAnswers.register.push('registerShortcodes');
                 break;
             case 'enable-custom-post-types':
-                vars.wizard = 'update-code';
-                vars.support = [];
-                vars.register = ['registerCustomPostTypes'];
+                promptAnswers.wizard = 'update-code';
+                promptAnswers.register.push('registerCustomPostTypes');
                 break;
             case 'enable-taxonomies':
-                vars.wizard = 'update-code';
-                vars.support = [];
-                vars.register = ['registerTaxonomies'];
+                promptAnswers.wizard = 'update-code';
+                promptAnswers.register.push('registerTaxonomies');
                 break;
             default:
                 this.log(yosay('Welcome to the divine ' + chalk.red('Chayka') + ' generator!'));
@@ -687,15 +721,12 @@ module.exports = yeoman.generators.Base.extend({
                     answers.appClass = answers.appType === 'plugin'? 'Plugin':'Theme';
                     answers.chaykaFrameworkDeps = g.resolveDeps(answers.chaykaFrameworkDeps.length?answers.chaykaFrameworkDeps:['wp']);
 
-
-                    this.Chayka = {
-                        options: answers
-                    };
                     this.appname = answers.appName;
                     this.description = answers.appDescription;
+                    answers.support = g._.union(promptAnswers.support, answers.support);
+                    answers.register = g._.union(promptAnswers.register, answers.register);
+                    util.extend(promptAnswers, answers);
 
-
-                    // this.log(this);
                     done();
                 }.bind(this));
         }
@@ -723,7 +754,8 @@ module.exports = yeoman.generators.Base.extend({
                 util.mkdir('res/src/img');
 
                 // package.json
-                var vars = this.Chayka.options;
+                // var vars = this.Chayka.options;
+                var vars = promptAnswers;
                 var pckg = util.readTplJSON('configs/_package.json', vars);
                 if (vars.gitRemoteRepo) {
                     pckg.repository = {
@@ -770,8 +802,12 @@ module.exports = yeoman.generators.Base.extend({
                 util.write('README.md', vars.appDescription);
 
                 // chayka.json
-                delete vars.wizard;
-                util.writeJSON('chayka.json', vars);
+
+                util.writeJSON('chayka.json', g._.pick(vars, [
+                    'appType', 'appName', 'appDescription', 'appKeywords', 'appVersion', 
+                    'appAuthor', 'appAuthorEmail', 'appAuthorUri', 'appLicense', 
+                    'parentTheme', 'phpNamespace', 'routing', 'chaykaFramework', 'chaykaFrameworkDeps', 'support', 'register',
+                ]));
 
                 // Plugin or Theme
                 // this.template(this.templatePath('code/App.xphp'), this.destinationPath(vars.appClass + '.php'), vars);
@@ -826,7 +862,7 @@ module.exports = yeoman.generators.Base.extend({
 
         updateConfigs: function(){
             // var g = this;
-            var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.wizard === 'update-configs'){
                 // package.json
                 var pckgUpdate = util.readTplJSON('configs/_package.json', vars);
@@ -881,7 +917,7 @@ module.exports = yeoman.generators.Base.extend({
 
         updateCode: function(){
             // var g = this;
-            var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.wizard === 'update-code'){
                 var appFile = vars.appClass + '.php';
                 var appCode = util.readDst(appFile);
@@ -926,7 +962,7 @@ module.exports = yeoman.generators.Base.extend({
 
         initIdea: function(){
             var g = this;
-            var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.ideaInit){
                 var configCode;
                 var configPath = '.idea/' + vars.ideaProject + '.iml';
@@ -951,10 +987,18 @@ module.exports = yeoman.generators.Base.extend({
                     util.write(configPath, configCode);
                 }
             }
+        },
+
+        saveConfig: function(){
+            delete promptAnswers.wizard;
+            delete promptAnswers.ideaInit;
+            this.config.set(promptAnswers);
         }
     },
+
     install: function() {
         var g = this;
+        var vars = promptAnswers;
         if (!this.options['skip-install'] && !g.appExists) {
             this.installDependencies({
                 skipInstall: this.options['skip-install']
@@ -965,16 +1009,17 @@ module.exports = yeoman.generators.Base.extend({
             this.spawnCommand('grunt');
         }
 
-        if (this.Chayka.options.gitInit && !util.pathExists('.git')) {
+        if (vars.gitInit && !util.pathExists('.git')) {
             shelljs.exec('git init');
             shelljs.exec('git add .');
             shelljs.exec('git commit -m "first commit"');
         }
-        if (this.Chayka.options.gitRemoteRepo && util.pathExists('.git/config') && util.readDst('.git/config').indexOf(this.Chayka.options.gitRemoteRepo) > -1) {
-            shelljs.exec('git remote add origin ' + this.Chayka.options.gitRemoteRepo);
-            if (this.Chayka.options.gitPush) {
+        if (vars.gitRemoteRepo && util.pathExists('.git/config') && util.readDst('.git/config').indexOf(vars.gitRemoteRepo) > -1) {
+            shelljs.exec('git remote add origin ' + vars.gitRemoteRepo);
+            if (vars.gitPush) {
                 shelljs.exec('git push -u origin master');
             }
         }
+
     }
 });

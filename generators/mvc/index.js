@@ -3,6 +3,7 @@ var yeoman = require('yeoman-generator');
 var chalk = require('chalk');
 var yosay = require('yosay');
 var utils = require('../utils'), util = null;
+var promptAnswers = {};
 // var shelljs = require('shelljs');
 // var fs = require('fs');
 // console.log(shelljs);
@@ -12,9 +13,9 @@ module.exports = yeoman.generators.Base.extend({
         this.pkg = require('../../package.json');
         util = utils(this);
 
-        this.Chayka = {
-            options: util.readJSON('chayka.json')
-        };
+        // this.Chayka = {
+        //     options: util.readJSON('chayka.json')
+        // };
     },
     prompting: function() {
         var done = this.async();
@@ -150,12 +151,14 @@ module.exports = yeoman.generators.Base.extend({
                         answers.declareVarsCode += util.template(declareVarTpl, {'paramName': key, 'defValue': value});
                         answers.outputVarsCode += util.template(outputVarTpl, {'paramName': key, 'defValue': value});
                     }
-                    util.extend(g.Chayka.options, answers);
+                    util.extend(promptAnswers, g.config.getAll(), answers);
+                    // util.extend(g.Chayka.options, answers);
                     done();
                 });
 
             }else{
-                util.extend(this.Chayka.options, answers);
+                // util.extend(this.Chayka.options, answers);
+                util.extend(promptAnswers, this.config.getAll(), answers);
                 done();
             }
         }.bind(this);
@@ -179,7 +182,8 @@ module.exports = yeoman.generators.Base.extend({
         },
 
         controller: function() {
-            var vars = this.Chayka.options;
+            // var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.wizard === 'controller'){
                 vars.controller = util.classify(vars.controller).replace(/Controller$/, '');
                 util.copy(
@@ -188,11 +192,20 @@ module.exports = yeoman.generators.Base.extend({
                     vars
                 );
                 util.mkdir('app/views/'+util.dashify(vars.controller));
+                var controllers = this.config.get('controllers');
+                if(!controllers){
+                    controllers = {};                    
+                }
+                if(!controllers[vars.controller]){
+                    controllers[vars.controller] = [];
+                }
+                this.config.set('controllers', controllers);
             }
         },
 
         action: function() {
-            var vars = this.Chayka.options;
+            // var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.wizard === 'action'){
 
                 vars.action = util.camelize(vars.action).replace(/Action$/, '');
@@ -231,11 +244,24 @@ module.exports = yeoman.generators.Base.extend({
                     //     viewFile
                     // );         
                 }
+
+                var controllers = this.config.get('controllers');
+                if(!controllers){
+                    controllers = {};                    
+                }
+                if(!controllers[vars.controller]){
+                    controllers[vars.controller] = [];
+                }
+                if(controllers[vars.controller].indexOf(dashAction) === -1){
+                    controllers[vars.controller].push(dashAction);   
+                }
+                this.config.set('controllers', controllers);
             }
         },
 
         model: function() {
-            var vars = this.Chayka.options;
+            // var vars = this.Chayka.options;
+            var vars = promptAnswers;
             if(vars.wizard === 'model'){
                 vars.model = util.classify(vars.model).replace(/Model$/, '');
                 util.copy(
@@ -249,10 +275,19 @@ module.exports = yeoman.generators.Base.extend({
                     'app/sql/'+vars.dbTable + '.sql', 
                     vars
                 );
+                var models = this.config.get('models');
+                if(!models){
+                    models = [];                    
+                }
+                if(models.indexOf(vars.model) === -1){
+                    models.push(vars.model);   
+                }
+                this.config.set('models', models);
             }
         },
 
     },
+
     install: function() {
 
     }

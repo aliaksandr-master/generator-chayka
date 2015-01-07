@@ -39,8 +39,8 @@ module.exports = function(g){
 	    },
 
 	    append: function(file, content){
-	    	var old = utils.readDst(g, file);
-	    	return utils.write(g, file, old + content);
+	    	var old = utils.readDst(file);
+	    	return utils.write(file, old + content);
 	    },
 
 	    copy: function(tpl, dst, context){
@@ -52,7 +52,7 @@ module.exports = function(g){
 	    },
 
 	    readTplJSON: function(file, context) {
-	        return JSON.parse(utils.readTpl(g, file, context));
+	        return JSON.parse(utils.readTpl(file, context));
 	    },
 
 	    readJSON: function(file) {
