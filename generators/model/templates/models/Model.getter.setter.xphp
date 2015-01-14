@@ -1,0 +1,20 @@
+
+    /**
+     * Get <%= description %>
+     * 
+     * @return <%= phpType %>
+     */
+    public function get<%= _.classify(phpField) %>() {
+        return $this->userId;
+    }
+
+    /**
+     * Set <%= description %>
+     * 
+     * @param <%= phpType %> $userId
+     * @return <%= model %>Model
+     */
+    public function set<%= _.classify(phpField) %>($<%= phpField %>) {
+        $this-><%= phpField %> = $<%= phpField %>;
+        return $this;
+    }

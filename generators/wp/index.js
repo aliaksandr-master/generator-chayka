@@ -1202,7 +1202,7 @@ module.exports = yeoman.generators.Base.extend({
                 }
 
                 // action
-                this.composeWith('chayka:mvc', 
+                this.composeWith('chayka:controller', 
                     {
                         options: {
                             'externalCall': {
@@ -1280,7 +1280,7 @@ module.exports = yeoman.generators.Base.extend({
                 }
 
                 // action
-                this.composeWith('chayka:mvc', 
+                this.composeWith('chayka:controller', 
                     {
                         options: {
                             'externalCall': {
@@ -1428,7 +1428,7 @@ module.exports = yeoman.generators.Base.extend({
                     );
                 }
 
-                this.composeWith('chayka:mvc', 
+                this.composeWith('chayka:controller', 
                     {
                         options: {
                             'externalCall': {

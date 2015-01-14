@@ -1,0 +1,1 @@
+            '<%= sqlField %>' => $this-><%= phpField %> ? DateHelper::<%= phpDtToStr %>($this-><%= phpField %>) : null,

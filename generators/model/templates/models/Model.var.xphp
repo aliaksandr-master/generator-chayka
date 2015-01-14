@@ -1,0 +1,7 @@
+
+    /**
+	 * <%= description %>
+	 *
+     * @var <%= phpType %>
+     */
+    protected $<%= phpField %>;

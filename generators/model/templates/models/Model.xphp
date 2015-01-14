@@ -1,0 +1,105 @@
+<?php
+
+namespace <%= phpNamespace %>;
+
+use Chayka\Helpers\DateHelper;
+use Chayka\Helpers\Util;
+use Chayka\WP\Helpers\DbHelper;
+use Chayka\WP\Models\ReadyModel;
+use DateTime;
+
+class <%= model %>Model extends ReadyModel{
+
+    /* chayka: modelVars */
+
+    function __construct() {
+        /* chayka: __construct */
+    }
+
+    /**
+     * Get db table name for the instance storage.
+     *
+     * @return string
+     */
+    public static function getDbTable() {
+        return DbHelper::dbTable('<%= dbTable %>');
+    }
+
+    /**
+     * Get id column name in db table
+     *
+     * @return mixed
+     */
+    public static function getDbIdColumn() {
+        return '<%= dbIdColumn %>';
+    }
+
+    /* chayka: modelGettersSetters */
+
+    /* chayka: selectBy */
+
+    /**
+     * Unpacks db result object into this instance
+     *
+     * @param array|object $data
+     * @return self
+     */
+    public static function unpackDbRecord($data) {
+        $obj = new self();
+
+        $obj->setId(Util::getItem($data, '<%= dbIdColumn %>', 0));
+        /* chayka: unpackDbRecord */
+
+        return $obj;
+    }
+
+    /**
+     * Packs this instance for db insert/update
+     *
+     * @param bool $forUpdate
+     * @return array
+     */
+    public function packDbRecord($forUpdate = false) {
+        $dbRecord = array(
+            '<%= dbIdColumn %>' => $this->getId(),
+            /* chayka: packDbRecord */
+        );
+
+        if($forUpdate){ // update
+
+        }else{  // create
+
+        }
+
+        return $dbRecord;
+    }
+
+    /**
+     * Unpacks json object into this instance
+     *
+     * @param array|object $data
+     * @return self
+     */
+    public static function unpackJsonItem($data) {
+        $obj = new self();
+
+        $obj->setId(Util::getItem($data, '<%= dbIdColumn %>', 0));
+        /* chayka: unpackJsonItem */
+
+        return $obj;
+    }
+
+    /**
+     * Returns assoc array to be packed into json payload
+     *
+     * @return array($key=>$value);
+     */
+    public function packJsonItem() {
+        $json = array(
+            '<%= dbIdColumn %>' => $this->getId(),
+            /* chayka: packJsonItem */
+        );
+
+        return $json;
+    }
+}

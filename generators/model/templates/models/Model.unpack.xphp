@@ -1,0 +1,1 @@
+        $obj->set<%= _.classify(phpField) %>(Util::getItem($data, '<%= sqlField %>', <%= phpDefault %>));

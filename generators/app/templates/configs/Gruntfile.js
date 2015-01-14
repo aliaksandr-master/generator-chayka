@@ -6,7 +6,11 @@ module.exports = function(grunt) {
         less: ['res/src/css/**/*.less'],
         css: ['res/tmp/css/**/*.css'],
         js: ['res/src/js/**/*.js'],
-        img: ['res/src/js/**/*.{png,jpg,gif}']
+        img: ['res/src/js/**/*.{png,jpg,gif}'],
+
+        lessNg: ['res/src/ng-modules/**/*.less'],
+        cssNg: ['res/src/ng-modules/*.css'],
+        jsNg: ['res/src/ng-modules/*.js']
     };
 
     var chayka = grunt.file.readJSON('chayka.json');
@@ -21,6 +25,10 @@ module.exports = function(grunt) {
                 files:{
                     'res/tmp/css/less.css': resFiles.less
                 }
+            },
+            developmentNg:{
+                files:{
+                }
             }
         },
         autoprefixer: {
@@ -28,7 +36,7 @@ module.exports = function(grunt) {
                 browsers: ['last 2 versions']
             },
             development: {
-                src: resFiles.css
+                src: resFiles.css.concat(resFiles.cssNg)
             }
         },
         csslint: {
@@ -36,7 +44,7 @@ module.exports = function(grunt) {
                 csslintrc: '.csslintrc'
             },
             development: {
-                src: resFiles.css
+                src: resFiles.css.concat(resFiles.cssNg)
             }
         },
         cssmin: {
@@ -48,6 +56,11 @@ module.exports = function(grunt) {
             plugin: {
                 files: {
                     'res/dist/css/style.css': ['res/tmp/css/less.css']
+                }
+            },
+            ng: {
+                files: {
+                    'res/dist/ng-modules/<%= pkg.name %>.min.css': ['res/src/ng-modules/*.css']
                 }
             }
         },
@@ -73,7 +86,7 @@ module.exports = function(grunt) {
                 jshintrc: true
             },
             all: {
-                src: resFiles.js.concat('Gruntfile.js')
+                src: resFiles.js.concat(resFiles.jsNg).concat('Gruntfile.js')
             }
         },
         uglify: {
@@ -82,7 +95,8 @@ module.exports = function(grunt) {
                     mangle: false
                 },
                 files: {
-                    'res/dist/js/application.js': resFiles.js
+                    'res/dist/js/application.js': resFiles.js,
+                    'res/dist/ng-modules/<%= pkg.name %>.min.js': resFiles.jsNg
                 }
             }
         },
@@ -128,9 +142,9 @@ module.exports = function(grunt) {
     // Making grunt default to force in order not to break the project.
     grunt.option('force', true);
 
-    grunt.registerTask('css-theme', ['less', 'autoprefixer', 'csslint', 'cssmin:theme', 'concat:theme', 'clean:css']);
+    grunt.registerTask('css-theme', ['less', 'autoprefixer', 'csslint', 'cssmin:theme', 'cssmin:ng', 'concat:theme', 'clean:css']);
 
-    grunt.registerTask('css-plugin', ['less', 'autoprefixer', 'csslint', 'cssmin:plugin', 'clean:css']);
+    grunt.registerTask('css-plugin', ['less', 'autoprefixer', 'csslint', 'cssmin:plugin', 'cssmin:ng', 'clean:css']);
 
     grunt.registerTask('css', isPlugin?['css-plugin']:['css-theme']);
 

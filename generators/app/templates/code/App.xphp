@@ -13,10 +13,11 @@ class <%= appClass %> extends WP\<%= appClass %>{
     public static function init(){
         if(!static::$instance){
             static::$instance = $app = new self(__FILE__, array(
-                /* chayka: init/controllers */
+                /* chayka: init-controllers */
             ));
+            $app->dbUpdate(array());
 
-            /* chayka: init/addSupport */
+            /* chayka: init-addSupport */
         }
     }
 

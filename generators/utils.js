@@ -78,6 +78,13 @@ module.exports = function(g){
 	        });
 	    },
 
+        insertAtHashComment: function(marker, containerCode, insertCode, replace){
+            var re = new RegExp('(?:\\n)[\\s^\\n]*#\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '', 'g');
+            return containerCode.replace(re, function(match) {
+                return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
+            });
+        },
+
 	    insertBeforeClosingBracket: function(containerCode, insertCode){
 	        return containerCode.replace(/\}(?:[^}]*)\s*$/, insertCode + '}');
 	    },
@@ -110,9 +117,13 @@ module.exports = function(g){
 	        return g._.humanize(name);   
 	    },
 
-	    capitalize: function(name){
-	        return g._.capitalize(name);   
-	    },
+        capitalize: function(name){
+            return g._.capitalize(name);   
+        },
+
+        decapitalize: function(name){
+            return g._.decapitalize(name);   
+        },
 
 	    plural: function(name){
 	    	return name.replace(/y$/, 'ie') + 's';

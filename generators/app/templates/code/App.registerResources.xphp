@@ -5,5 +5,10 @@
      * @param bool $minimize
      */
     public function registerResources($minimize = false) {
+        $this->registerBowerResources(true);
+
+        $this->setResSrcDir('src/');
+        $this->setResDistDir('dist/');
+
 		/* chayka: registerResources */
     }

@@ -1,0 +1,2 @@
+        $<%= phpField %> = Util::getItem($data, '<%= sqlField %>', '');
+        $obj->set<%= _.classify(phpField) %>($<%= phpField %> ? DateHelper::<%= phpStrToDt %>($<%= phpField %>) : new DateTime());

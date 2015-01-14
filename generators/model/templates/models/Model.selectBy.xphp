@@ -1,0 +1,12 @@
+
+    /**
+     * Select instance from db by '<%= sqlField %>'.
+     * Mind to ensure <%= sqlIndex === 'UNIQUE' ? 'unique ' : '' %>index on '<%= sqlField %>' field.
+     *
+     * @param $value
+     * @param string $format
+     * @return <%= sqlIndex === 'UNIQUE' ? model + 'Model' : 'array' %>|null
+     */
+    public static function selectBy<%= _.classify(phpField) %>($value, $format = '%s'){
+        return self::selectBy('<%= sqlField %>', $value, <%= sqlIndex === 'UNIQUE' ? 'false' : 'true' %>, $format);
+    }

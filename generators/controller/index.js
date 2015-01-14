@@ -33,9 +33,6 @@ module.exports = yeoman.generators.Base.extend({
                 }, {
                     name: 'Add ' + chalk.green('Action'),
                     value: 'action'
-                }, {
-                    name: 'Add ' + chalk.green('Model'),
-                    value: 'model'
                 }, 
             ],
             default: 'controller'
@@ -88,40 +85,7 @@ module.exports = yeoman.generators.Base.extend({
                 return answers.wizard === 'action';
             }
         }, 
-            /* model */
-        {
-            name: 'model',
-            message: 'Model name:',
-            type: 'input',
-            default: function(){
-                return 'DummyModel';
-            },
-            when: function(answers) {
-                return answers.wizard === 'model';
-            }
-        }, {
-            name: 'dbTable',
-            message: 'DB table name:',
-            type: 'input',
-            default: function(answers){
-                var table = util.underscored(answers.model.replace(/Model$/, '').replace(/y$/, 'ie') + 's');
-                return table;
-            },
-            when: function(answers) {
-                return answers.wizard === 'model';
-            }
-        }, {
-            name: 'dbIdColumn',
-            message: 'DB table id column:',
-            type: 'input',
-            default: function(answers){
-                var table = util.underscored(answers.model.replace(/Model$/, '')) + '_id';
-                return table;
-            },
-            when: function(answers) {
-                return answers.wizard === 'model';
-            }
-        }];
+        ];
 
         var promptDone = function(answers) {
             if(answers.wizard === 'action'){
@@ -177,7 +141,6 @@ module.exports = yeoman.generators.Base.extend({
             util.mkdir('app');
             util.mkdir('app/controllers');
             util.mkdir('app/helpers');
-            util.mkdir('app/models');
             util.mkdir('app/views');
         },
 
@@ -256,33 +219,6 @@ module.exports = yeoman.generators.Base.extend({
                     controllers[vars.controller].push(dashAction);   
                 }
                 this.config.set('controllers', controllers);
-            }
-        },
-
-        model: function() {
-            // var vars = this.Chayka.options;
-            var vars = promptAnswers;
-            if(vars.wizard === 'model'){
-                vars.model = util.classify(vars.model).replace(/Model$/, '');
-                util.copy(
-                    'models/Model.xphp', 
-                    'app/models/'+vars.model + 'Model.php', 
-                    vars
-                );
-                util.mkdir('app/sql');
-                util.copy(
-                    'sql/model.xsql', 
-                    'app/sql/'+vars.dbTable + '.sql', 
-                    vars
-                );
-                var models = this.config.get('models');
-                if(!models){
-                    models = [];                    
-                }
-                if(models.indexOf(vars.model) === -1){
-                    models.push(vars.model);   
-                }
-                this.config.set('models', models);
             }
         },
 

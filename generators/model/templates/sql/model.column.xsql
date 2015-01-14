@@ -1,0 +1,1 @@
+  `<%= sqlField %>` <%= sqlType %> <%= sqlNull %> <%= sqlDefault %> <%= sqlIndex %>,

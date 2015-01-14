@@ -1,0 +1,10 @@
+--
+-- Table structure for table `<%= dbTable %>`
+--
+
+CREATE TABLE IF NOT EXISTS `{prefix}<%= dbTable %>` (
+  `<%= dbIdColumn %>` INT NOT NULL AUTO_INCREMENT,
+# chayka: <%= dbTable %>_columns  
+  PRIMARY KEY (`<%= dbIdColumn %>`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+

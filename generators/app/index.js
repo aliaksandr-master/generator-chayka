@@ -12,34 +12,34 @@ var promptAnswers = {}
 var framework = {
     helpers: {
         name: 'Chayka.Helpers',
-        packagist: 'chyaka/wp',
+        packagist: 'chayka/wp',
         src: 'Chayka.WP/src',
     },
     mvc: {
         name: 'Chayka.MVC',
-        packagist: 'chyaka/wp',
+        packagist: 'chayka/wp',
         src: 'Chayka.WP/src',
         deps: ['helpers']
     },
     wp: {
         name: 'Chayka.WP',
-        packagist: 'chyaka/wp',
+        packagist: 'chayka/wp',
         src: 'Chayka.WP/src',
         deps: ['mvc']
     },
     core: {
         name: 'Chayka.Core.wpp',
-        packagist: 'chyaka/core-wpp',
+        packagist: 'chayka/core-wpp',
         deps: ['wp']
     },
     email: {
         name: 'Chayka.Email.wpp',
-        packagist: 'chyaka/email-wpp',
+        packagist: 'chayka/email-wpp',
         deps: ['core'],
     },
     auth: {
         name: 'Chayka.Auth.wpp',
-        packagist: 'chyaka/auth-wpp',
+        packagist: 'chayka/auth-wpp',
         deps: ['core', 'email'],
     },
 };
@@ -69,8 +69,8 @@ module.exports = yeoman.generators.Base.extend({
                 }
             });
 
-            /* chayka: init/addSupport */
-            return util.insertAtSlashStarComment('init/addSupport', appCode, supportCode);
+            /* chayka: init-addSupport */
+            return util.insertAtSlashStarComment('init-addSupport', appCode, supportCode);
         };
 
         this.ensureFunctions = function(appCode, functions){
@@ -414,7 +414,7 @@ module.exports = yeoman.generators.Base.extend({
                     },
                 ];
 
-                return answers.appType === 'Plugin' ? support : support.concat(
+                return answers.appType === 'plugin' ? support : support.concat(
                     {
                         name: 'Thumbnails',
                         value: 'Thumbnails',
@@ -501,7 +501,7 @@ module.exports = yeoman.generators.Base.extend({
                     },
                 ];
 
-                return answers.appType === 'Plugin' ? register : register.concat(
+                return answers.appType === 'plugin' ? register : register.concat(
                     {
                         name: 'NavMenus',
                         value: 'registerNavMenus',
