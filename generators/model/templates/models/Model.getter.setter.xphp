@@ -5,13 +5,13 @@
      * @return <%= phpType %>
      */
     public function get<%= _.classify(phpField) %>() {
-        return $this->userId;
+        return $this-><%= phpField %>;
     }
 
     /**
      * Set <%= description %>
      * 
-     * @param <%= phpType %> $userId
+     * @param <%= phpType %> $<%= phpField %>
      * @return <%= model %>Model
      */
     public function set<%= _.classify(phpField) %>($<%= phpField %>) {

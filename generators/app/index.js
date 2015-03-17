@@ -217,6 +217,9 @@ module.exports = yeoman.generators.Base.extend({
                 }
                 return value ? true : 'You should specify project name, the field is required.';
             },
+            default: function(answers){
+                return  (g.destinationPath().match(/(?:\/)([^\/]+)$/)[1] || '').replace(/\.wp[pt]$/, '');
+            },
             when: function(){
                 return !g.appExists;
             }
@@ -302,6 +305,7 @@ module.exports = yeoman.generators.Base.extend({
             type: 'list',
             choices: [
                 'external',
+                'plugin',
                 'embedded'
             ],
             when: function(){
@@ -315,40 +319,38 @@ module.exports = yeoman.generators.Base.extend({
                 {
                     name: 'Chayka.Core.wpp',
                     value: 'core',
-                    checked: true,
+                    checked: true
                 },
                 {
                     name: 'Chayka.Email.wpp',
-                    value: 'email',
+                    value: 'email'
                     // checked: true,
                 },
                 {
                     name: 'Chayka.Auth.wpp',
-                    value: 'auth',
+                    value: 'auth'
                     // checked: true,
                 },
                 {
                     name: 'Chayka.Comments.wpp',
                     value: 'comments',
-                    disabled: true,
+                    disabled: true
                     // checked: true,
                 },
                 {
                     name: 'Chayka.Search.wpp',
-                    value: 'search',
-                    disabled: true,
+                    value: 'search'
                     // checked: true,
                 },
                 {
                     name: 'Chayka.DbMonitor.wpp',
                     value: 'db-monitor',
-                    disabled: true,
+                    disabled: true
                     // checked: true,
                 },
                 {
                     name: 'Chayka.Facebook.wpp',
-                    value: 'facebook',
-                    disabled: true,
+                    value: 'facebook'
                     // checked: true,
                 },
             ],
@@ -386,32 +388,32 @@ module.exports = yeoman.generators.Base.extend({
                         name: 'URI Processing',
                         value: 'UriProcessing',
                         checked: config.support.indexOf('UriProcessing') > -1,
-                        disabled: config.support.indexOf('UriProcessing') > -1,
+                        disabled: config.support.indexOf('UriProcessing') > -1
                     },
                     {
                         name: 'Console Pages',
                         value: 'ConsolePages',
                         checked: config.support.indexOf('ConsolePages') > -1,
-                        disabled: config.support.indexOf('ConsolePages') > -1,
+                        disabled: config.support.indexOf('ConsolePages') > -1
                     },
                     {
                         name: 'Metaboxes',
                         value: 'Metaboxes',
                         checked: config.support.indexOf('Metaboxes') > -1,
-                        disabled: config.support.indexOf('Metaboxes') > -1,
+                        disabled: config.support.indexOf('Metaboxes') > -1
                     },
                     {
                         name: 'Custom Permalinks',
                         value: 'CustomPermalinks',
                         checked: config.support.indexOf('CustomPermalinks') > -1,
-                        disabled: config.support.indexOf('CustomPermalinks') > -1,
+                        disabled: config.support.indexOf('CustomPermalinks') > -1
                     },
                     {
                         name: 'Post Processing',
                         value: 'PostProcessing',
                         checked: config.support.indexOf('PostProcessing') > -1,
-                        disabled: config.support.indexOf('PostProcessing') > -1,
-                    },
+                        disabled: config.support.indexOf('PostProcessing') > -1
+                    }
                 ];
 
                 return answers.appType === 'plugin' ? support : support.concat(
@@ -419,13 +421,13 @@ module.exports = yeoman.generators.Base.extend({
                         name: 'Thumbnails',
                         value: 'Thumbnails',
                         checked: config.support.indexOf('Thumbnails') > -1,
-                        disabled: config.support.indexOf('Thumbnails') > -1,
+                        disabled: config.support.indexOf('Thumbnails') > -1
                     },
                     {
                         name: 'Excerpt',
                         value: 'Excerpt',
                         checked: config.support.indexOf('Excerpt') > -1,
-                        disabled: config.support.indexOf('Excerpt') > -1,
+                        disabled: config.support.indexOf('Excerpt') > -1
                     }
                 );
             },
@@ -443,68 +445,68 @@ module.exports = yeoman.generators.Base.extend({
                         name: 'Actions',
                         value: 'registerActions',
                         checked: config.register.indexOf('registerActions') > -1 || true,
-                        disabled: config.register.indexOf('registerActions') > -1,
+                        disabled: config.register.indexOf('registerActions') > -1
                     },
                     {
                         name: 'Filters',
                         value: 'registerFilters',
                         checked: config.register.indexOf('registerFilters') > -1 || true,
-                        disabled: config.register.indexOf('registerFilters') > -1,
+                        disabled: config.register.indexOf('registerFilters') > -1
                     },
                     {
                         name: 'Resources',
                         value: 'registerResources',
                         checked: config.register.indexOf('registerResources') > -1 || true,
-                        disabled: config.register.indexOf('registerResources') > -1,
+                        disabled: config.register.indexOf('registerResources') > -1
                     },
                     {
                         name: 'Routes',
                         value: 'registerRoutes',
                         checked: config.register.indexOf('registerRoutes') > -1 || answers.support.indexOf('UriProcessing') > -1,
-                        disabled: config.register.indexOf('registerRoutes') > -1,
+                        disabled: config.register.indexOf('registerRoutes') > -1
                     },
                     {
                         name: 'Custom Post Types',
                         value: 'registerCustomPostTypes',
                         checked: config.register.indexOf('registerCustomPostTypes') > -1 || answers.support.indexOf('CustomPermalinks') > -1,
-                        disabled: config.register.indexOf('registerCustomPostTypes') > -1,
+                        disabled: config.register.indexOf('registerCustomPostTypes') > -1
                     },
                     {
                         name: 'Taxonomies',
                         value: 'registerTaxonomies',
                         checked: config.register.indexOf('registerTaxonomies') > -1 || answers.support.indexOf('CustomPermalinks') > -1,
-                        disabled: config.register.indexOf('registerTaxonomies') > -1,
+                        disabled: config.register.indexOf('registerTaxonomies') > -1
                     },
                     {
                         name: 'Console Pages',
                         value: 'registerConsolePages',
                         checked: config.register.indexOf('registerConsolePages') > -1 || answers.support.indexOf('ConsolePages') > -1,
-                        disabled: config.register.indexOf('registerConsolePages') > -1,
+                        disabled: config.register.indexOf('registerConsolePages') > -1
                     },
                     {
                         name: 'Metaboxes',
                         value: 'registerMetaboxes',
                         checked: config.register.indexOf('registerMetaboxes') > -1 || answers.support.indexOf('Metaboxes') > -1,
-                        disabled: config.register.indexOf('registerMetaboxes') > -1,
+                        disabled: config.register.indexOf('registerMetaboxes') > -1
                     },
                     {
                         name: 'Shortcodes',
                         value: 'registerShortcodes',
                         checked: config.register.indexOf('registerShortcodes') > -1,
-                        disabled: config.register.indexOf('registerShortcodes') > -1,
+                        disabled: config.register.indexOf('registerShortcodes') > -1
                     },
                     {
                         name: 'Sidebars',
                         value: 'registerSidebars',
                         checked: config.register.indexOf('registerSidebars') > -1,
-                        disabled: config.register.indexOf('registerSidebars') > -1,
-                    },
+                        disabled: config.register.indexOf('registerSidebars') > -1
+                    }
                 ];
 
                 return answers.appType === 'plugin' ? register : register.concat(
                     {
                         name: 'NavMenus',
-                        value: 'registerNavMenus',
+                        value: 'registerNavMenus'
                     }
                 );
             },
@@ -628,12 +630,16 @@ module.exports = yeoman.generators.Base.extend({
             name: 'ideaDeploymentPath',
             message: 'Idea deployment server?',
             default: function(answers){
-                return '/' + answers.ideaProject;   
+                return answers.chaykaFramework === 'plugin' ?
+                    '/Chayka.Core.wpp/vendor/' + answers.packagistVendor+ '/' + answers.packagistPackage :
+                    '/' + answers.ideaProject;
             },
             when: function(answers){
                 return !!answers.ideaInit;
             },
-            store: true
+            filter: function(value){
+                return value.replace(/\/$/, '');
+            }
         }, {
             name: 'appAuthor',
             message: 'What is your company/author name?',
@@ -786,7 +792,7 @@ module.exports = yeoman.generators.Base.extend({
                 }
                 // this.log(vars.chaykaFrameworkDeps);
                 // this.log(phpDeps);
-                var depsField = vars.chaykaFramework === 'external' ? 'suggest':'require';
+                var depsField = vars.chaykaFramework !== 'embedded' ? 'suggest':'require';
                 util.extend(composer[depsField], phpDeps);
                 // this.log(composer);
                 util.writeJSON('composer.json', composer);
@@ -895,7 +901,7 @@ module.exports = yeoman.generators.Base.extend({
                     var phpDep = framework[dep].packagist;
                     phpDeps[phpDep] = 'dev-master';
                 }
-                var depsField = vars.chaykaFramework === 'external' ? 'suggest':'require';
+                var depsField = vars.chaykaFramework !== 'embedded' ? 'suggest':'require';
                 util.extend(composer[depsField], phpDeps);
                 util.writeJSON('composer.json', composer);
 
@@ -969,7 +975,7 @@ module.exports = yeoman.generators.Base.extend({
                 if(!g.appExists || vars.wizard === 'init-idea'){
                     
                     configCode = util.readTpl('idea/ideaProject.iml');
-                    if(vars.chaykaFramework === 'external'){
+                    if(vars.chaykaFramework !== 'embedded'){
                         configCode = this.ensureIdeaPhpIncludePath(configCode, vars.chaykaFrameworkDeps);
                     }
                     util.write(configPath, configCode);
@@ -981,7 +987,7 @@ module.exports = yeoman.generators.Base.extend({
                     if(vars.gitInit){
                         util.copy('idea/vcs.xml', '.idea/vcs.xml');
                     }
-                }else if(vars.wizard === 'update-configs' && vars.chaykaFramework === 'external'){
+                }else if(vars.wizard === 'update-configs' && vars.chaykaFramework !== 'embedded'){
                     configCode = util.readDst(configPath);
                     configCode = this.ensureIdeaPhpIncludePath(configCode, vars.chaykaFrameworkDeps);
                     util.write(configPath, configCode);

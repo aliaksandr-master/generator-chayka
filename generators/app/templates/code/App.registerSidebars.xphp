@@ -1,6 +1,6 @@
 
     /**
-     * Custom Sidebars are to be added here via $this->registerSidbar();
+     * Custom Sidebars are to be added here via $this->registerSidebar();
      */
     public function registerSidebars() {
 		/* chayka: registerSidebars */

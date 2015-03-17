@@ -10,6 +10,7 @@
           <excludedPaths>
             <excludedPath path="<%= ideaDeploymentPath %>/vendor" />
             <excludedPath path="<%= ideaDeploymentPath %>/node_modules" />
+            <excludedPath path="<%= ideaDeploymentPath %>/res/tmp" />
           </excludedPaths>
         </serverdata>
       </paths>

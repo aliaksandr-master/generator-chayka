@@ -5,45 +5,116 @@ var fs = require('fs');
 module.exports = function(g){
 
 	var utils = {
+
+		/**
+		 * Create directory (destination relative)
+		 *
+		 * @param {string} path
+		 * @returns {*}
+		 */
 		mkdir: function(path){
 			return g.mkdir(g.destinationPath(path));
 		},
 
+		/**
+		 * Check if path exists (destination relative)
+		 *
+		 * @param {string} path
+		 * @returns {boolean}
+		 */
 		pathExists: function(path){
 			return fs.existsSync(g.destinationPath(path));
 		},
 
-	    readDirDst: function(path) {
+		/**
+		 * Read destination directory contents
+		 *
+		 * @param path
+		 * @returns {[]}
+		 */
+		readDirDst: function(path) {
 	        return fs.readdirSync(g.destinationPath(path));
 	    },
 
+		/**
+		 * Read templates directory contents
+		 *
+		 * @param path
+		 * @returns {[]}
+		 */
 	    readDirTpl: function(path) {
 	        return fs.readdirSync(g.templatePath(path));
 	    },
 
+		/**
+		 * Read file from destination
+		 *
+		 * @param {string} file
+		 * @returns {string}
+		 */
 	    readDst: function(file) {
 	        return g.fs.read(g.destinationPath(file));
 	    },
 
+		/**
+		 * Read file from templates,
+		 * if context provided performs template var substitution
+		 *
+		 * @param {string} file
+		 * @param [context]
+		 * @returns {string} context
+		 */
 	    readTpl: function(file, context) {
 	        var tpl = g.fs.read(g.templatePath(file));
 	        return context ? g._.template(tpl, context) : tpl;
 	    },
 
-	    readDstOrTpl: function(dstFile, tplFile, context){
+		/**
+		 * Read destination file, if it does not exist,
+		 * read template and substitute context
+		 *
+		 * @param {string} dstFile
+		 * @param {string} tplFile
+		 * @param {{}} context
+		 * @returns {string}
+		 */
+		readDstOrTpl: function(dstFile, tplFile, context){
             return utils.pathExists(dstFile) ? utils.readDst(dstFile) : utils.readTpl(tplFile, context);
 	    },
 
-	    write: function(file, content){
+		/**
+		 * Write to destination file
+		 *
+		 * @param {string} file
+		 * @param {string} content
+		 * @returns {*}
+		 */
+		write: function(file, content){
 	    	return g.fs.write(g.destinationPath(file), content);
 	    },
 
-	    append: function(file, content){
+		/**
+		 * Append content to existing destination file
+		 *
+		 * @param file
+		 * @param content
+		 * @returns {*}
+		 */
+		append: function(file, content){
 	    	var old = utils.readDst(file);
 	    	return utils.write(file, old + content);
 	    },
 
-	    copy: function(tpl, dst, context){
+		/**
+		 * Copy file from templates to destination,
+		 * if context specified perform template substitution
+		 *
+		 * @param {string} tpl
+		 * @param {string} dst
+		 * @param {{}} [context]
+		 * @returns {*}
+		 */
+		copy: function(tpl, dst, context){
 	    	if(context){
 	    		return g.template(g.templatePath(tpl), g.destinationPath(dst), context);
 	    	}else{
@@ -51,26 +122,66 @@ module.exports = function(g){
 	    	}
 	    },
 
-	    readTplJSON: function(file, context) {
+		/**
+		 * Read json file from templates,
+		 * if context specified perform template substitution
+		 *
+		 * @param {string} file
+		 * @param {{}} context
+		 * @returns {{}}
+		 */
+		readTplJSON: function(file, context) {
 	        return JSON.parse(utils.readTpl(file, context));
 	    },
 
-	    readJSON: function(file) {
+		/**
+		 * Read json file from destination
+		 *
+		 * @param {string} file
+		 * @returns {{}}
+		 */
+		readJSON: function(file) {
 	        var json = g.fs.read(g.destinationPath(file));
 	        return JSON.parse(json);
 	    },
 
-	    writeJSON: function(file, json) {
+		/**
+		 * Write json object to destination file
+		 *
+		 * @param file
+		 * @param json
+		 */
+		writeJSON: function(file, json) {
 	        g.fs.write(g.destinationPath(file), JSON.stringify(json, null, 4));
 	    },
 
-	    insertAtHtmlComment: function(marker, containerCode, insertCode, replace){
+		/**
+		 * Insert code fragment into existing code at position defined by HTML comment
+		 * <!-- chayka:__marker__ -->
+		 *
+		 * @param {string} marker
+		 * @param {string} containerCode
+		 * @param {string} insertCode
+		 * @param {boolean} [replace]
+		 * @returns {string}
+		 */
+		insertAtHtmlComment: function(marker, containerCode, insertCode, replace){
 	    	var re = new RegExp('(?:\\n)[\\s^\\n]*<!--\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*-->', 'g');
 	        return containerCode.replace(re, function(match) {
 	            return (insertCode ? '\n' + insertCode : '') + (replace ? '' : match);
 	        });
 	    },
 
+		/**
+		 * Insert code fragment into existing code at position defined by slash star comment
+		 * /* chayka:__marker__ *'/
+		 *
+		 * @param {string} marker
+		 * @param {string} containerCode
+		 * @param {string} insertCode
+		 * @param {boolean} [replace]
+		 * @returns {string}
+		 */
 	    insertAtSlashStarComment: function(marker, containerCode, insertCode, replace){
 	    	var re = new RegExp('(?:\\n)[\\s^\\n]*\\/\\*\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '\\s*\\*\\/', 'g');
 	        return containerCode.replace(re, function(match) {
@@ -78,6 +189,16 @@ module.exports = function(g){
 	        });
 	    },
 
+		/**
+		 * Insert code fragment into existing code at position defined by hash comment
+		 * # chayka:__marker__
+		 *
+		 * @param {string} marker
+		 * @param {string} containerCode
+		 * @param {string} insertCode
+		 * @param {boolean} replace
+		 * @returns {string}
+		 */
         insertAtHashComment: function(marker, containerCode, insertCode, replace){
             var re = new RegExp('(?:\\n)[\\s^\\n]*#\\s*chayka:\\s*' + marker.replace(/[\/\.]/, function(m){return '\\\\'+m;}) + '', 'g');
             return containerCode.replace(re, function(match) {
@@ -85,71 +206,182 @@ module.exports = function(g){
             });
         },
 
+		/**
+		 * Insert code fragment into existing code before last closing bracket '}'
+		 * /* chayka:__marker__ *'/
+		 *
+		 * @param {string} containerCode
+		 * @param {string} insertCode
+		 * @returns {string}
+		 */
 	    insertBeforeClosingBracket: function(containerCode, insertCode){
-	        return containerCode.replace(/\}(?:[^}]*)\s*$/, insertCode + '}');
+	        return containerCode.replace(/}(?:[^}]*)\s*$/, insertCode + '}');
 	    },
 
-	    dasherize: function(name){
+		/**
+		 * Some text -> -some-text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
+		dasherize: function(name){
 	        return g._.dasherize(name);   
 	    },
 
+		/**
+		 * Some text -> some-text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
 	    dashify: function(name){
 	        return g._.dasherize(name).replace(/^-/, '');   
 	    },
 
+		/**
+		 * Some text -> some-text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
 	    slugify: function(name){
 	        return g._.slugify(name);   
 	    },
 
+		/**
+		 * Some text -> SomeText
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
 	    classify: function(name){
 	        return g._.classify(name);   
 	    },
 
+		/**
+		 * some text -> someText
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
 	    camelize: function(name){
 	        return g._.camelize(name);   
 	    },
 
-	    underscored: function(name){
+		/**
+		 * Some text -> some_text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
+		underscored: function(name){
 	        return g._.underscored(name);   
 	    },
 
-	    humanize: function(name){
+		/**
+		 * some-text -> Some text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
+		humanize: function(name){
 	        return g._.humanize(name);   
 	    },
 
-        capitalize: function(name){
+		/**
+		 * some-text -> Some Text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
+		capitalize: function(name){
             return g._.capitalize(name);   
         },
 
+		/**
+		 * Some text -> some text
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
         decapitalize: function(name){
             return g._.decapitalize(name);   
         },
 
-	    plural: function(name){
+		/**
+		 * Dummy -> Dummies
+		 * Cat -> Cats
+		 * Bitch -> Bitchs !
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
+		plural: function(name){
 	    	return name.replace(/y$/, 'ie') + 's';
 	    },
 
+		/**
+		 * Dummies -> Dummy
+		 * Cats -> Cat
+		 * Bitches -> Bitch
+		 *
+		 * @param {string} name
+		 * @returns {string}
+		 */
 	    singular: function(name){
 	    	return name.replace(/e?s$/, '').replace(/ie$/, 'y');
 	    },
 
-	    template: function(tpl, context){
+		/**
+		 * Template function, alia to lodash _.template()
+		 *
+		 * @param {string} tpl
+		 * @param {{}} [context]
+		 * @returns {string|function}
+		 */
+		template: function(tpl, context){
 	    	return g._.template(tpl, context);
 	    },
 
-	    strToArray: function(str){
+		/**
+		 * str.split(/,\s+/);
+		 *
+		 * @param {string} str
+		 * @returns {*|Array}
+		 */
+		strToArray: function(str){
 	    	return str.split(/,\s+/);
 	    },
 
+		/**
+		 * Alias to lodash _.extend()
+		 * @returns {*}
+		 */
 	    extend: function(){
 	    	return g._.extend.apply(g._, arguments);
 	    },
 
-	    checkRequired: function(value){
+		/**
+		 * Required field check for inquirer API
+		 *
+		 * @param value
+		 * @returns {boolean|string}
+		 */
+		checkRequired: function(value){
 	        return !!value || 'This field is required';
 	    },
 
-        promptPair: function(invitaitonMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
+		/**
+		 * key => value pair inquirer prompting
+		 *
+		 * @param {string} invitationMsg
+		 * @param {string} keyMsg
+		 * @param {string} valueMsg
+		 * @param {string} keyFilter
+		 * @param {string} valueFilter
+		 * @param {function} done
+		 */
+        promptPair: function(invitationMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
         	var filters, keyFilters, valueFilters;
         	filters = keyFilters = valueFilters = ['-none-', 'dasherize', 'dashify', 'slugify', 'classify', 'camelize', 'underscored', 'humanize'];
 
@@ -167,10 +399,10 @@ module.exports = function(g){
                 {
                     name: 'confirm',
                     type: 'confirm',
-                    message: invitaitonMsg||' ',
+                    message: invitationMsg||' ',
                     when: function(answers){
                     	a = answers;
-                    	return !!invitaitonMsg;
+                    	return !!invitationMsg;
                     }
                 },
                 {
@@ -182,7 +414,7 @@ module.exports = function(g){
                 		return 0;
                 	},
                 	when: function(answers){
-                		return (!invitaitonMsg || answers.confirm) && !!keyFilter && filters.indexOf(keyFilter) === -1;
+                		return (!invitationMsg || answers.confirm) && !!keyFilter && filters.indexOf(keyFilter) === -1;
                 	}
                 },
                 {
@@ -194,7 +426,7 @@ module.exports = function(g){
                 		return 0;
                 	},
                 	when: function(answers){
-                		return (!invitaitonMsg || answers.confirm) && !!valueFilter && filters.indexOf(valueFilter) === -1;
+                		return (!invitationMsg || answers.confirm) && !!valueFilter && filters.indexOf(valueFilter) === -1;
                 	}
                 },
                 {
@@ -227,14 +459,14 @@ module.exports = function(g){
                         return value;
                     },
                     when: function (answers) {
-                    	return !invitaitonMsg || answers.confirm;
+                    	return !invitationMsg || answers.confirm;
                     }
                 },
                 {
                     name: 'value',
                     message: valueMsg,
                     when: function (answers) {
-                    	return (!invitaitonMsg || answers.confirm) && answers.key;
+                    	return (!invitationMsg || answers.confirm) && answers.key;
                     },
                     filter: function(value){
                     	switch(a.valueFilter || valueFilter){
@@ -285,16 +517,32 @@ module.exports = function(g){
                     			break;
                     	}
                         return value;
-                    },
-                },
+                    }
+                }
             ];
 
             g.prompt(pairPrompts, done);
         },
 
-        promptPairs: function(invitaitonMsg, moreMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
+		/**
+		 * Looped key => value pair inquirer prompting
+		 * @param {string} invitationMsg
+		 * @param {string} moreMsg
+		 * @param {string} keyMsg
+		 * @param {string} valueMsg
+		 * @param {string} keyFilter
+		 * @param {string} valueFilter
+		 * @param {function} done
+		 */
+		promptPairs: function(invitationMsg, moreMsg, keyMsg, valueMsg, keyFilter, valueFilter, done){
             var pairs = {};
-            var pairReady = function(pair){
+			/**
+			 * @param {{
+			 * 	keyFilter: {string},
+			 * 	valueFilter: {string}
+			 * }} pair
+			 */
+			var pairReady = function(pair){
                 if(pair.key || pair.confirm){
                     pairs[pair.key] = pair.value;
                     if(pair.keyFilter){
@@ -309,8 +557,8 @@ module.exports = function(g){
                 }
             };
 
-            utils.promptPair(invitaitonMsg, keyMsg, valueMsg, keyFilter, valueFilter, pairReady);
-        },
+            utils.promptPair(invitationMsg, keyMsg, valueMsg, keyFilter, valueFilter, pairReady);
+        }
 
 	};
 

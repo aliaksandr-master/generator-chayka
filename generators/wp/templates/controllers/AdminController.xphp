@@ -2,13 +2,12 @@
 
 namespace <%= phpNamespace %>;
 
-use Chayka\MVC\Controller;
+use Chayka\WP\MVC\Controller;
 
 class AdminController extends Controller{
 
     public function init(){
-        wp_enqueue_script('chayka-options-form');
-        wp_enqueue_style('chayka-options-form');
+        $this->enqueueNgScriptStyle('chayka-options-form');
     }
 
 } 

@@ -2,7 +2,7 @@
 
 require_once 'vendor/autoload.php';
 
-if(!class_exists("<%= initDepPhpClass.replace(/\//g, '\\\\') %>")){
+if(!class_exists("<%= initDepPhpClass.replace(/\\/g, '\\\\') %>")){
     add_action( 'admin_notices', function () {
 ?>
     <div class="error">
@@ -12,5 +12,5 @@ if(!class_exists("<%= initDepPhpClass.replace(/\//g, '\\\\') %>")){
 	});
 }else{
     require_once dirname(__FILE__).'/<%= appClass %>.php';
-	add_action('init', array("<%= phpNamespace.replace(/\//g, '\\\\') %>\\<%= appClass %>", "init"));
+	add_action('init', array("<%= phpNamespace.replace(/\\/g, '\\\\') %>\\<%= appClass %>", "init"));
 }

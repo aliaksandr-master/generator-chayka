@@ -5,3 +5,10 @@
     public function registerMetaBoxes(){
         /* chayka: registerMetaBoxes */
     }
+
+    /**
+     * Remove registered metaboxes here via removeMetaBox() calls;
+     */
+    public function unregisterMetaBoxes(){
+        /* chayka: unregisterMetaBoxes */
+    }

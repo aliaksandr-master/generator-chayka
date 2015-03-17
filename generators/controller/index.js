@@ -79,7 +79,8 @@ module.exports = yeoman.generators.Base.extend({
             default: 'view',
             choices: [
                 {name: 'API', value: 'api'},
-                {name: 'View', value: 'view'}
+                {name: 'View', value: 'view'},
+                {name: 'Empty', value: 'empty'},
             ],
             when: function(answers) {
                 return answers.wizard === 'action';
@@ -172,16 +173,26 @@ module.exports = yeoman.generators.Base.extend({
             if(vars.wizard === 'action'){
 
                 vars.action = util.camelize(vars.action).replace(/Action$/, '');
-                var actionCode = util.readTpl(
-                        (vars.actionType === 'view' ? 'controllers/Action.view.xphp': 'controllers/Action.api.xphp'),
-                    vars);
+                var actionCode;
+                switch(vars.actionType){
+                    case 'api':
+                        actionCode = util.readTpl('controllers/Action.api.xphp', vars);
+                        break;
+                    case 'view':
+                        actionCode = util.readTpl('controllers/Action.view.xphp', vars);
+                        break;
+                    case 'empty':
+                        actionCode = util.readTpl('controllers/Action.empty.xphp', vars);
+                        break;
+
+                }
 
                 actionCode = util.insertAtSlashStarComment('getParams', actionCode, vars.getParamsCode, true);
                 actionCode = util.insertAtSlashStarComment('assignParams', actionCode, vars.assignParamsCode, true);
 
                 vars.controller = util.classify(vars.controller).replace(/Controller$/, '');
                 var controllerFile = 'app/controllers/' + vars.controller + 'Controller.php';
-                var controllerCode = util.readDstOrTpl(controllerFile, 'controllers/Controller.xphp', vars);
+                var controllerCode = vars.controllerTpl || util.readDstOrTpl(controllerFile, 'controllers/Controller.xphp', vars);
                 util.mkdir('app/views/'+util.dashify(vars.controller));
 
                 if(!controllerCode.match(new RegExp('function\\s+' + vars.action))){
