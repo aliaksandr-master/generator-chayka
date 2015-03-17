@@ -266,7 +266,7 @@ module.exports = yeoman.generators.Base.extend({
             message: 'Your packagist.org vendor id?',
             default: function(answers) {
                 var re = /[\._\-].*$/;
-                var vendor = g._slugify(answers.appName.replace(re, ''));
+                var vendor = g._.slugify(answers.appName.replace(re, ''));
                 return config.packagistVendor || vendor;
             },
             validate: util.checkRequired,            
