@@ -1,6 +1,8 @@
 /**
  * Plugin Name: <%= appName %>
+ <% if (gitRemoteRepo) {%>
  * Plugin URI: <%= gitRemoteRepo %>
+ <% } %>
  * Description: <%= appDescription %>
  * Version: <%= appVersion %>
  * Author: <%= appAuthor %> <<%= appAuthorEmail %>>
