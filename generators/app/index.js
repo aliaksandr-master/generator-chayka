@@ -837,7 +837,7 @@ module.exports = yeoman.generators.Base.extend({
                 // this.log(appCode);
 
                 util.write(vars.appClass + '.php', appCode);
-
+                vars.gitRemoteRepo = vars.gitRemoteRepo || vars.appAuthorUri || '';
                 if(vars.appType === 'plugin'){
                     var initCode = util.readTpl(vars.initDep?'code/functions.dep.xphp':'code/functions.xphp', vars)
                         .replace('<?php', '<?php\n' + util.readTpl('configs/header-plugin.xphp', vars));
