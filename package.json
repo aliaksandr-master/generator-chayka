@@ -26,6 +26,7 @@
   "dependencies": {
     "chalk": "^0.5.0",
     "github": "^0.2.3",
+    "shelljs": "^0.4.0",
     "yeoman-generator": "^0.18.0",
     "yosay": "^0.3.0"
   },
